@@ -3,31 +3,41 @@
 import { useState } from "react";
 
 export default function Home() {
-  const [invoiceText, setInvoiceText] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState("");
 
-  const handleExtract = async () => {
-    if (!invoiceText) return;
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+      setResult(null);
+      setError("");
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!file) return;
     setIsLoading(true);
     setError("");
     setResult(null);
 
+    const formData = new FormData();
+    formData.append("file", file);
+
     try {
-      // C'EST ICI LE PONT VERS TON CERVEAU IA (RENDER)
-      const response = await fetch("https://agent-backend-0atw.onrender.com/extract", {
+      // Appel vers ton API Render avec la nouvelle route
+      const response = await fetch("https://agent-backend-0atw.onrender.com/extract-pdf", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text_content: invoiceText }),
+        body: formData, 
       });
 
-      if (!response.ok) throw new Error("Erreur de communication avec l'API");
+      if (!response.ok) throw new Error("Erreur lors du traitement du document");
       
       const data = await response.json();
-      setResult(data.data); // On récupère les données IA
+      setResult(data.data);
     } catch (err) {
-      setError("Le serveur IA est en train de démarrer ou est inaccessible. Réessayez dans 10 secondes.");
+      setError("Erreur de communication avec le serveur d'extraction IA.");
     } finally {
       setIsLoading(false);
     }
@@ -43,35 +53,44 @@ export default function Home() {
             Agent Pré-Comptable IA
           </h1>
           <p className="text-slate-400 text-lg">
-            Collez le texte brut de votre facture. Notre IA (MVP) extrait les données instantanément pour validation.
+            Glissez ou sélectionnez votre facture (PDF). L'agent extrait les données pour validation instantanée.
           </p>
         </div>
 
-        {/* ZONE DE SAISIE */}
-        <div className="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700">
-          <textarea
-            className="w-full h-48 bg-slate-900 border border-slate-600 rounded-xl p-4 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
-            placeholder="Exemple : Facture 2024-08, Fournisseur : TechCorp SAS, Montant total : 1200€ TTC, TVA 200€..."
-            value={invoiceText}
-            onChange={(e) => setInvoiceText(e.target.value)}
-          ></textarea>
+        {/* ZONE DE DEPOT DE FICHIER */}
+        <div className="bg-slate-800 p-8 rounded-2xl shadow-xl border border-slate-700 text-center space-y-4">
+          <div className="border-2 border-dashed border-slate-600 rounded-xl p-8 hover:border-blue-500 transition-colors cursor-pointer relative">
+            <input
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg"
+              onChange={handleFileChange}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            <div className="space-y-2">
+              <span className="text-3xl">📄</span>
+              <p className="text-slate-300 font-medium">
+                {file ? file.name : "Glissez votre facture ici ou cliquez pour parcourir"}
+              </p>
+              <p className="text-xs text-slate-500">Formats acceptés : PDF, PNG, JPG</p>
+            </div>
+          </div>
           
           <button
-            onClick={handleExtract}
-            disabled={isLoading || !invoiceText}
-            className="mt-4 w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold py-3 px-6 rounded-xl transition-all"
+            onClick={handleUpload}
+            disabled={isLoading || !file}
+            className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold py-3 px-6 rounded-xl transition-all"
           >
-            {isLoading ? "Extraction IA en cours..." : "Lancer l'analyse"}
+            {isLoading ? "Analyse du document par l'IA..." : "Lancer l'analyse du document"}
           </button>
         </div>
 
-        {/* AFFICHAGE DES RÉSULTATS (HUMAN-IN-THE-LOOP) */}
+        {/* RÉSULTATS */}
         {error && <p className="text-red-400 text-center">{error}</p>}
         
         {result && (
-          <div className="bg-emerald-900/30 border border-emerald-500/50 p-6 rounded-2xl animate-fade-in">
+          <div className="bg-emerald-900/30 border border-emerald-500/50 p-6 rounded-2xl">
             <h2 className="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
-              ✓ Extraction réussie (En attente de validation DAF)
+              ✓ Document analysé (En attente de validation DAF)
             </h2>
             <div className="grid grid-cols-2 gap-4 text-slate-300">
               <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
@@ -92,7 +111,7 @@ export default function Home() {
               </div>
             </div>
             <button className="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-xl transition-all">
-              Valider et envoyer à l'ERP (Démo)
+              Valider et injecter dans l'ERP
             </button>
           </div>
         )}
