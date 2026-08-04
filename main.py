@@ -4,9 +4,9 @@ import io
 import os
 import json
 from pypdf import PdfReader
-import google.generativeai as genai
+import requests
 
-app = FastAPI(title="API Agent IA Financier - Cerveau Gemini", version="2.0")
+app = FastAPI(title="API Agent IA - Expert Comptable", version="11.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -16,10 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# On récupère la clé secrète depuis le coffre-fort Render
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
 
 @app.post("/extract-pdf")
 async def extract_pdf(file: UploadFile = File(...)):
@@ -27,7 +24,6 @@ async def extract_pdf(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Merci d'envoyer un vrai fichier PDF.")
     
     try:
-        # 1. On ouvre le PDF et on extrait tout le texte brut
         contents = await file.read()
         pdf_file = io.BytesIO(contents)
         reader = PdfReader(pdf_file)
@@ -39,47 +35,79 @@ async def extract_pdf(file: UploadFile = File(...)):
                 extracted_text += text + "\n"
         
         if not extracted_text.strip():
-            raise HTTPException(status_code=400, detail="Le PDF semble être une image ou un scan sans texte lisible.")
+            raise HTTPException(status_code=400, detail="Le PDF semble être un scan.")
 
-        # 2. On envoie le texte au cerveau IA avec une consigne métier (Prompt)
         if not GEMINI_API_KEY:
             raise HTTPException(status_code=500, detail="Clé API non configurée.")
 
-        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = f"""
-        Tu es un assistant comptable expert pour les DAF. Voici le texte extrait d'une facture.
-        Ton travail est de trouver les informations suivantes et de me les renvoyer STRICTEMENT au format JSON.
-        Ne réponds rien d'autre que l'objet JSON.
+        Tu es un assistant comptable expert pour les DAF. Extraire les infos en JSON STRICT.
+        Ne réponds RIEN d'autre que l'objet JSON. Si une info est introuvable, mets "N/A" (ou 0.00 pour les montants).
         
         Format attendu :
         {{
             "fournisseur": "Nom de l'entreprise",
-            "montant_ttc": 0.00,
+            "numero_facture": "Numéro de la facture",
+            "date_emission": "Date de la facture (format JJ/MM/AAAA)",
+            "montant_ht": 0.00,
             "tva": 0.00,
-            "iban": "Le numéro IBAN, ou N/A s'il n'y en a pas"
+            "montant_ttc": 0.00,
+            "iban": "Numéro IBAN ou N/A"
         }}
         
-        Voici le texte de la facture :
+        Texte de la facture :
         {extracted_text}
         """
+
+        models_url = f"https://generativelanguage.googleapis.com/v1beta/models?key={GEMINI_API_KEY}"
+        models_response = requests.get(models_url)
         
-        response = model.generate_content(prompt)
+        if models_response.status_code != 200:
+            raise Exception("Impossible de lire la liste des modèles Google.")
+            
+        models_data = models_response.json().get("models", [])
         
-        # 3. On nettoie la réponse de l'IA pour s'assurer que c'est bien du JSON propre
-        response_text = response.text.strip()
-        if response_text.startswith("```json"):
-            response_text = response_text.replace("```json", "").replace("```", "").strip()
-        
-        # On transforme le texte en vraies données
-        extracted_data = json.loads(response_text)
+        extracted_data = None
+        target_model_used = None
+        last_error = ""
+
+        for m in models_data:
+            name = m.get("name", "")
+            methods = m.get("supportedGenerationMethods", [])
+            
+            if "gemini" in name and "generateContent" in methods:
+                url = f"https://generativelanguage.googleapis.com/v1beta/{name}:generateContent?key={GEMINI_API_KEY}"
+                payload = { "contents": [{"parts": [{"text": prompt}]}] }
+                
+                api_response = requests.post(url, json=payload)
+                
+                if api_response.status_code == 200:
+                    result_json = api_response.json()
+                    response_text = result_json['candidates'][0]['content']['parts'][0]['text'].strip()
+                    
+                    if response_text.startswith("```json"):
+                        response_text = response_text.replace("```json", "").replace("```", "").strip()
+                    elif response_text.startswith("```"):
+                        response_text = response_text.replace("```", "").strip()
+                    
+                    try:
+                        extracted_data = json.loads(response_text)
+                        target_model_used = name
+                        break
+                    except json.JSONDecodeError:
+                        continue
+                else:
+                    last_error = str(api_response.status_code)
+
+        if not extracted_data:
+            raise Exception(f"Tous les modèles ont échoué. Dernière erreur : {last_error}")
 
         return {
-            "message": "Analyse IA terminée avec succès.",
+            "message": f"Analyse IA ({target_model_used}) réussie.",
             "filename": file.filename,
             "data": extracted_data
         }
         
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="L'IA n'a pas pu structurer les données correctement.")
     except Exception as e:
+        print(f"🚨 ERREUR CRASH IA : {str(e)}")
         raise HTTPException(status_code=500, detail=f"Erreur du serveur IA : {str(e)}")
