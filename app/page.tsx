@@ -27,7 +27,7 @@ export default function Home() {
     formData.append("file", file);
 
     try {
-      const response = await fetch("[https://agent-backend-0atw.onrender.com/extract-pdf](https://agent-backend-0atw.onrender.com/extract-pdf)", {
+      const response = await fetch("https://agent-backend-0atw.onrender.com/extract-pdf", {
         method: "POST",
         body: formData,
       });
@@ -142,7 +142,7 @@ export default function Home() {
               </div>
             </div>
 
-<div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+            <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
               <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Coordonnées Bancaires (IBAN)</p>
               <p className="text-base font-mono text-slate-300">{data.iban || "N/A"}</p>
             </div>
