@@ -27,7 +27,6 @@ export default function Home() {
     formData.append("file", file);
 
     try {
-      // Appel direct à ton super serveur Render
       const response = await fetch("https://agent-backend-0atw.onrender.com/extract-pdf", {
         method: "POST",
         body: formData,
@@ -51,7 +50,6 @@ export default function Home() {
     <main className="min-h-screen bg-slate-950 text-slate-200 flex flex-col items-center py-12 px-4 font-sans">
       <div className="max-w-3xl w-full space-y-8">
         
-        {/* En-tête */}
         <div className="text-center space-y-4">
           <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
             Agent Pré-Comptable IA
@@ -61,7 +59,6 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Zone d'upload */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
           <div className="border-2 border-dashed border-slate-700 rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-slate-800/50 transition-colors relative">
             <input 
@@ -80,7 +77,7 @@ export default function Home() {
               <>
                 <Upload className="w-12 h-12 text-slate-500 mb-4" />
                 <p className="text-lg font-medium text-slate-300">Sélectionnez une facture au format PDF</p>
-                <p className="text-sm text-slate-500 mt-1">Formats acceptés : PDF uniquement pour l'instant</p>
+                <p className="text-sm text-slate-500 mt-1">Formats acceptés : PDF uniquement</p>
               </>
             )}
           </div>
@@ -101,7 +98,6 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Message d'erreur */}
         {error && (
           <div className="bg-red-950/50 border border-red-900 text-red-400 p-4 rounded-xl flex items-center gap-3">
             <AlertCircle className="w-6 h-6 shrink-0" />
@@ -109,50 +105,53 @@ export default function Home() {
           </div>
         )}
 
-        {/* Résultat (Le Tableau de bord du DAF) */}
+        {/* AFFICHAGE COMPLET DE TOUTES LES INFOS DAF */}
         {data && (
-          <div className="bg-green-950/20 border border-green-800/50 rounded-2xl p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center gap-2 text-green-400 mb-6 border-b border-green-900/50 pb-4">
+          <div className="bg-green-950/20 border border-green-800/50 rounded-2xl p-6 animate-in fade-in duration-300 space-y-4">
+            <div className="flex items-center gap-2 text-green-400 border-b border-green-900/50 pb-4">
               <CheckCircle2 className="w-6 h-6" />
               <h2 className="text-xl font-bold">Document analysé (En attente de validation DAF)</h2>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Fournisseur</p>
-                <p className="text-lg font-bold text-slate-100">{data.fournisseur || "N/A"}</p>
+            {/* Ligne 1 : Fournisseur & N° Facture & Date */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Fournisseur</p>
+                <p className="text-base font-bold text-slate-100">{data.fournisseur || "N/A"}</p>
               </div>
-              <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">N° Facture</p>
-                <p className="text-lg font-medium text-slate-200">{data.numero_facture || "N/A"}</p>
+              <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">N° de Facture</p>
+                <p className="text-base font-medium text-slate-200">{data.numero_facture || "N/A"}</p>
               </div>
-              <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Date d'émission</p>
-                <p className="text-lg font-medium text-slate-200">{data.date_emission || "N/A"}</p>
+              <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Date d'émission</p>
+                <p className="text-base font-medium text-slate-200">{data.date_emission || "N/A"}</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Montant HT</p>
-                <p className="text-xl font-bold text-slate-200">{data.montant_ht} €</p>
+            {/* Ligne 2 : Montants HT, TVA, TTC */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Montant HT</p>
+                <p className="text-lg font-bold text-slate-200">{data.montant_ht} €</p>
               </div>
-              <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">TVA</p>
-                <p className="text-xl font-medium text-slate-400">{data.tva} €</p>
+              <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">TVA</p>
+                <p className="text-lg font-medium text-slate-400">{data.tva} €</p>
               </div>
               <div className="bg-blue-950/40 p-4 rounded-xl border border-blue-900/50">
-                <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1">Montant TTC</p>
-                <p className="text-2xl font-black text-white">{data.montant_ttc} €</p>
+                <p className="text-xs text-blue-400 uppercase tracking-wider mb-1">Montant TTC</p>
+                <p className="text-xl font-black text-white">{data.montant_ttc} €</p>
               </div>
             </div>
 
-            <div className="bg-slate-900/80 p-4 rounded-xl border border-slate-800 mb-6">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Coordonnées Bancaires (IBAN)</p>
-              <p className="text-lg font-mono text-slate-300 tracking-widest">{data.iban || "N/A"}</p>
+            {/* Ligne 3 : IBAN */}
+            <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+              <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Coordonnées Bancaires (IBAN)</p>
+              <p className="text-base font-mono text-slate-300">{data.iban || "N/A"}</p>
             </div>
 
-            <button className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg shadow-green-900/20 text-lg">
+            <button className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg text-lg">
               Valider et injecter dans l'ERP
             </button>
           </div>
