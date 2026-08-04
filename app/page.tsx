@@ -27,7 +27,7 @@ export default function Home() {
     formData.append("file", file);
 
     try {
-      const response = await fetch("https://agent-backend-0atw.onrender.com/extract-pdf", {
+      const response = await fetch("[https://agent-backend-0atw.onrender.com/extract-pdf](https://agent-backend-0atw.onrender.com/extract-pdf)", {
         method: "POST",
         body: formData,
       });
@@ -105,15 +105,13 @@ export default function Home() {
           </div>
         )}
 
-        {/* AFFICHAGE COMPLET DE TOUTES LES INFOS DAF */}
         {data && (
-          <div className="bg-green-950/20 border border-green-800/50 rounded-2xl p-6 animate-in fade-in duration-300 space-y-4">
+          <div className="bg-green-950/20 border border-green-800/50 rounded-2xl p-6 space-y-4">
             <div className="flex items-center gap-2 text-green-400 border-b border-green-900/50 pb-4">
               <CheckCircle2 className="w-6 h-6" />
               <h2 className="text-xl font-bold">Document analysé (En attente de validation DAF)</h2>
             </div>
             
-            {/* Ligne 1 : Fournisseur & N° Facture & Date */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
                 <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Fournisseur</p>
@@ -129,7 +127,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Ligne 2 : Montants HT, TVA, TTC */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
                 <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Montant HT</p>
@@ -145,8 +142,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Ligne 3 : IBAN */}
-            <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+<div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
               <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Coordonnées Bancaires (IBAN)</p>
               <p className="text-base font-mono text-slate-300">{data.iban || "N/A"}</p>
             </div>
