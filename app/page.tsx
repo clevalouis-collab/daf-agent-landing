@@ -2,15 +2,15 @@
 
 import React, { useState } from 'react';
 
-export default function AgentPreComptableBatch() {
+export default function AgentPreComptableBatchPro() {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [retryingIndex, setRetryingIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<any[]>([]);
 
   const handleFileChange = (e: any) => {
     if (e.target.files) {
-      // Convertit la liste de fichiers en tableau (jusqu'à 100 et plus)
       const selectedFiles = Array.from(e.target.files) as File[];
       setFiles(selectedFiles);
       setError(null);
@@ -30,7 +30,7 @@ export default function AgentPreComptableBatch() {
 
     const formData = new FormData();
     files.forEach((file) => {
-      formData.append('files', file); // 'files' au pluriel pour correspondre au backend
+      formData.append('files', file);
     });
 
     try {
@@ -53,7 +53,50 @@ export default function AgentPreComptableBatch() {
     }
   };
 
-  // Fonction pour générer et télécharger le fichier CSV compatible ERP
+  // Fonction clé : Relancer un seul fichier qui a échoué (Timeout / Erreur)
+  const handleRetrySingle = async (index: number, filename: string) => {
+    const fileToRetry = files.find(f => f.name === filename);
+    if (!fileToRetry) {
+      alert("Fichier original introuvable pour la relance.");
+      return;
+    }
+
+    setRetryingIndex(index);
+
+    const formData = new FormData();
+    formData.append('file', fileToRetry);
+
+    try {
+      const response = await fetch('https://agent-backend-0atw.onrender.com/extract-pdf', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Erreur lors de la relance.");
+      }
+
+      // Met à jour uniquement la ligne concernée dans le tableau
+      const updatedResults = [...results];
+      updatedResults[index] = data; // { filename, data } ou { filename, error }
+      setResults(updatedResults);
+    } catch (err: any) {
+      alert(`Échec de la relance : ${err.message}`);
+    } finally {
+      setRetryingIndex(null);
+    }
+  };
+
+  const handleCellChange = (index: number, field: string, value: string) => {
+    const updatedResults = [...results];
+    if (updatedResults[index] && updatedResults[index].data) {
+      updatedResults[index].data[field] = value;
+      setResults(updatedResults);
+    }
+  };
+
   const exportToCSV = () => {
     if (results.length === 0) return;
 
@@ -80,7 +123,7 @@ export default function AgentPreComptableBatch() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "export_comptable_clfinance.csv");
+    link.setAttribute("download", "export_comptable_clfinance_valide.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -89,7 +132,6 @@ export default function AgentPreComptableBatch() {
   return (
     <div className="min-h-screen bg-[#0a0f1c] text-white font-sans selection:bg-blue-500/35 pb-20">
       
-      {/* HEADER LUXE : CLFinance */}
       <header className="w-full p-6 flex items-center justify-between border-b border-slate-800/60 bg-slate-900/30 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-br from-amber-300 to-amber-600 shadow-[0_0_15px_rgba(217,119,6,0.4)]">
@@ -101,36 +143,33 @@ export default function AgentPreComptableBatch() {
             CLFinance
           </h1>
         </div>
-        <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">Mode Batch Industriel</span>
+        <span className="text-xs text-amber-400 bg-amber-950/40 px-3 py-1.5 rounded-full border border-amber-800/50">Enterprise V1.0 - Résilience Active</span>
       </header>
 
-      {/* CONTENU PRINCIPAL */}
-      <main className="max-w-5xl mx-auto px-4 pt-12">
+      <main className="max-w-7xl mx-auto px-4 pt-12">
         
         <div className="text-center mb-10">
-          <h2 className="text-4xl font-bold text-blue-400 mb-4 tracking-tight">Traitement de Factures en Masse</h2>
+          <h2 className="text-4xl font-bold text-blue-400 mb-4 tracking-tight">Agent Pré-Comptable IA</h2>
           <p className="text-slate-400 max-w-xl mx-auto">
-            Glissez jusqu'à 100 factures (PDF, JPG, PNG) simultanément. L'IA extrait tout en parallèle et génère votre export prêt pour l'ERP.
+            Glissez vos factures en masse. En cas d'incident sur une ligne, relancez-la individuellement en un clic.
           </p>
         </div>
 
         <div className="w-full bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl p-8 shadow-2xl">
           
-          {/* Zone de Drag & Drop Multiple */}
-          <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-slate-700 rounded-xl hover:border-blue-500 hover:bg-slate-800/50 transition-all cursor-pointer mb-6 group">
+          <label className="flex flex-col items-center justify-center w-full h-44 border-2 border-dashed border-slate-700 rounded-xl hover:border-blue-500 hover:bg-slate-800/50 transition-all cursor-pointer mb-6 group">
             <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
               <svg className="w-12 h-12 mb-3 text-blue-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
               </svg>
               <p className="mb-2 text-sm text-slate-300 font-semibold">
-                {files.length > 0 ? `${files.length} fichier(s) sélectionné(s)` : "Cliquez ou glissez vos factures ici (jusqu'à 100)"}
+                {files.length > 0 ? `${files.length} fichier(s) sélectionné(s)` : "Cliquez ou glissez vos factures ici"}
               </p>
-              <p className="text-xs text-slate-500">Sélection multiple acceptée (PDF, JPG, PNG)</p>
+              <p className="text-xs text-slate-500">PDF, JPG, PNG acceptés</p>
             </div>
             <input type="file" className="hidden" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} />
           </label>
 
-          {/* Bouton d'Analyse Batch */}
           <button 
             onClick={handleUploadBatch}
             disabled={loading || files.length === 0}
@@ -140,11 +179,10 @@ export default function AgentPreComptableBatch() {
                 : 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]'
             }`}
           >
-            {loading ? `Analyse IA en cours de ${files.length} documents...` : `Lancer l'analyse (${files.length} fichiers)`}
+            {loading ? `Analyse IA en cours (${files.length} fichiers)...` : `Lancer l'analyse intelligente`}
           </button>
         </div>
 
-        {/* Affichage des Erreurs */}
         {error && (
           <div className="mt-6 w-full bg-red-950/50 border border-red-900 text-red-400 p-4 rounded-xl flex items-start gap-3">
             <svg className="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -152,16 +190,17 @@ export default function AgentPreComptableBatch() {
           </div>
         )}
 
-        {/* Résultats et Tableau Global + Bouton Export ERP */}
         {results.length > 0 && (
           <div className="mt-10">
             <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
-                Résultats du Lot ({results.length} documents traités)
-              </h3>
+              <div>
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
+                  Validation & Résilience ({results.length} documents)
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">Modifiez les cellules ou relancez individuellement les factures en erreur.</p>
+              </div>
               
-              {/* Le bouton magique d'export ERP / CSV */}
               <button 
                 onClick={exportToCSV}
                 className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-[0_0_15px_rgba(5,150,105,0.4)] transition-all"
@@ -169,40 +208,110 @@ export default function AgentPreComptableBatch() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                 </svg>
-                Télécharger l'export ERP (CSV)
+                Télécharger l'export ERP (CSV validé)
               </button>
             </div>
 
-            {/* Tableau global des factures */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto shadow-2xl">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-800/80 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
-                    <th className="p-4">Fichier</th>
+                    <th className="p-4">Fichier source</th>
                     <th className="p-4">Fournisseur</th>
                     <th className="p-4">N° Facture</th>
                     <th className="p-4">Date</th>
                     <th className="p-4">HT</th>
                     <th className="p-4">TVA</th>
                     <th className="p-4">TTC</th>
+                    <th className="p-4">Devise</th>
                     <th className="p-4">IBAN</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800 text-sm">
                   {results.map((item, index) => (
-                    <tr key={index} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="p-4 font-medium text-slate-300 truncate max-w-[150px]">{item.filename}</td>
+                    <tr key={index} className="hover:bg-slate-800/20 transition-colors">
+                      <td className="p-4 font-medium text-slate-400 text-xs truncate max-w-[130px]" title={item.filename}>
+                        {item.filename}
+                      </td>
                       {item.error ? (
-                        <td colSpan={7} className="p-4 text-red-400 italic">Erreur : {item.error}</td>
+                        <td colSpan={8} className="p-4 bg-red-950/20">
+                          <div className="flex items-center justify-between">
+                            <span className="text-red-400 text-xs font-semibold">⚠️ Échec : {item.error}</span>
+                            <button 
+                              onClick={() => handleRetrySingle(index, item.filename)}
+                              disabled={retryingIndex === index}
+                              className="bg-red-600 hover:bg-red-500 disabled:bg-slate-800 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition-all shadow"
+                            >
+                              {retryingIndex === index ? "Relance..." : "🔄 Relancer"}
+                            </button>
+                          </div>
+                        </td>
                       ) : (
                         <>
-                          <td className="p-4 text-white font-semibold">{item.data?.fournisseur || <span className="text-slate-600 italic">N/A</span>}</td>
-                          <td className="p-4 text-slate-300">{item.data?.numero_facture || <span className="text-slate-600 italic">N/A</span>}</td>
-                          <td className="p-4 text-slate-300">{item.data?.date_emission || <span className="text-slate-600 italic">N/A</span>}</td>
-                          <td className="p-4 text-slate-200">{item.data?.montant_ht ? `${item.data.montant_ht} ${item.data.devise || ''}` : '-'}</td>
-                          <td className="p-4 text-slate-200">{item.data?.tva ? `${item.data.tva} ${item.data.devise || ''}` : '-'}</td>
-                          <td className="p-4 text-emerald-400 font-bold">{item.data?.montant_ttc ? `${item.data.montant_ttc} ${item.data.devise || ''}` : '-'}</td>
-                          <td className="p-4 text-xs text-slate-400 font-mono">{item.data?.iban || '-'}</td>
+                          <td className="p-3">
+                            <input 
+                              type="text" 
+                              value={item.data?.fournisseur || ''} 
+                              onChange={(e) => handleCellChange(index, 'fournisseur', e.target.value)}
+                              className="bg-slate-950/80 border border-slate-700/60 focus:border-blue-500 rounded px-2.5 py-1.5 text-white w-full text-sm outline-none transition-all"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <input 
+                              type="text" 
+                              value={item.data?.numero_facture || ''} 
+                              onChange={(e) => handleCellChange(index, 'numero_facture', e.target.value)}
+                              className="bg-slate-950/80 border border-slate-700/60 focus:border-blue-500 rounded px-2.5 py-1.5 text-white w-full text-sm outline-none transition-all"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <input 
+                              type="text" 
+                              value={item.data?.date_emission || ''} 
+                              onChange={(e) => handleCellChange(index, 'date_emission', e.target.value)}
+                              className="bg-slate-950/80 border border-slate-700/60 focus:border-blue-500 rounded px-2.5 py-1.5 text-white w-32 text-sm outline-none transition-all"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <input 
+                              type="text" 
+                              value={item.data?.montant_ht || ''} 
+                              onChange={(e) => handleCellChange(index, 'montant_ht', e.target.value)}
+                              className="bg-slate-950/80 border border-slate-700/60 focus:border-blue-500 rounded px-2.5 py-1.5 text-white w-28 text-sm outline-none transition-all"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <input 
+                              type="text" 
+                              value={item.data?.tva || ''} 
+                              onChange={(e) => handleCellChange(index, 'tva', e.target.value)}
+                              className="bg-slate-950/80 border border-slate-700/60 focus:border-blue-500 rounded px-2.5 py-1.5 text-white w-24 text-sm outline-none transition-all"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <input 
+                              type="text" 
+                              value= {item.data?.montant_ttc || ''} 
+                              onChange={(e) => handleCellChange(index, 'montant_ttc', e.target.value)}
+                              className="bg-slate-950/80 border border-slate-700/60 focus:border-emerald-500 text-emerald-400 font-bold rounded px-2.5 py-1.5 w-28 text-sm outline-none transition-all"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <input 
+                              type="text" 
+                              value={item.data?.devise || ''} 
+                              onChange={(e) => handleCellChange(index, 'devise', e.target.value)}
+                              className="bg-slate-950/80 border border-slate-700/60 focus:border-blue-500 rounded px-2.5 py-1.5 text-white w-20 text-sm outline-none transition-all text-center"
+                            />
+                          </td>
+                          <td className="p-3">
+                            <input 
+                              type="text" 
+                              value={item.data?.iban || ''} 
+                              onChange={(e) => handleCellChange(index, 'iban', e.target.value)}
+                              className="bg-slate-950/80 border border-slate-700/60 focus:border-blue-500 rounded px-2.5 py-1.5 text-slate-300 w-44 text-xs font-mono outline-none transition-all"
+                            />
+                          </td>
                         </>
                       )}
                     </tr>
