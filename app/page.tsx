@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 
-export default function AgentPreComptableBatchPro() {
+export default function AgentPreComptableBulldozer() {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [progressText, setProgressText] = useState("");
   const [retryingIndex, setRetryingIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<any[]>([]);
@@ -27,6 +28,7 @@ export default function AgentPreComptableBatchPro() {
     setLoading(true);
     setError(null);
     setResults([]);
+    setProgressText(`Mode Bulldozer activé : Analyse de ${files.length} documents en cours...`);
 
     const formData = new FormData();
     files.forEach((file) => {
@@ -42,27 +44,26 @@ export default function AgentPreComptableBatchPro() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || "Une erreur est survenue lors de l'analyse en lot.");
+        throw new Error(data.detail || "Une erreur est survenue lors de l'analyse.");
       }
 
       setResults(data.results);
     } catch (err: any) {
-      setError(err.message || "Erreur de connexion.");
+      setError(err.message || "Erreur de connexion avec le serveur.");
     } finally {
       setLoading(false);
+      setProgressText("");
     }
   };
 
-  // Fonction clé : Relancer un seul fichier qui a échoué (Timeout / Erreur)
   const handleRetrySingle = async (index: number, filename: string) => {
     const fileToRetry = files.find(f => f.name === filename);
     if (!fileToRetry) {
-      alert("Fichier original introuvable pour la relance.");
+      alert("Fichier original introuvable.");
       return;
     }
 
     setRetryingIndex(index);
-
     const formData = new FormData();
     formData.append('file', fileToRetry);
 
@@ -73,14 +74,10 @@ export default function AgentPreComptableBatchPro() {
       });
 
       const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || "Erreur lors de la relance.");
 
-      if (!response.ok) {
-        throw new Error(data.detail || "Erreur lors de la relance.");
-      }
-
-      // Met à jour uniquement la ligne concernée dans le tableau
       const updatedResults = [...results];
-      updatedResults[index] = data; // { filename, data } ou { filename, error }
+      updatedResults[index] = data;
       setResults(updatedResults);
     } catch (err: any) {
       alert(`Échec de la relance : ${err.message}`);
@@ -123,7 +120,7 @@ export default function AgentPreComptableBatchPro() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "export_comptable_clfinance_valide.csv");
+    link.setAttribute("download", "export_comptable_clfinance_bulldozer.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -143,7 +140,7 @@ export default function AgentPreComptableBatchPro() {
             CLFinance
           </h1>
         </div>
-        <span className="text-xs text-amber-400 bg-amber-950/40 px-3 py-1.5 rounded-full border border-amber-800/50">Enterprise V1.0 - Résilience Active</span>
+        <span className="text-xs text-amber-400 bg-amber-950/40 px-3 py-1.5 rounded-full border border-amber-800/50">Mode Bulldozer V37</span>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 pt-12">
@@ -151,7 +148,7 @@ export default function AgentPreComptableBatchPro() {
         <div className="text-center mb-10">
           <h2 className="text-4xl font-bold text-blue-400 mb-4 tracking-tight">Agent Pré-Comptable IA</h2>
           <p className="text-slate-400 max-w-xl mx-auto">
-            Glissez vos factures en masse. En cas d'incident sur une ligne, relancez-la individuellement en un clic.
+            Traitement industrialisé haute fiabilité. Glissez vos factures en masse, l'agent les avale une à une avec une précision chirurgicale.
           </p>
         </div>
 
@@ -163,9 +160,9 @@ export default function AgentPreComptableBatchPro() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
               </svg>
               <p className="mb-2 text-sm text-slate-300 font-semibold">
-                {files.length > 0 ? `${files.length} fichier(s) sélectionné(s)` : "Cliquez ou glissez vos factures ici"}
+                {files.length > 0 ? `${files.length} fichier(s) sélectionné(s)` : "Glissez vos factures ici (PDF, JPG, PNG)"}
               </p>
-              <p className="text-xs text-slate-500">PDF, JPG, PNG acceptés</p>
+              <p className="text-xs text-slate-500">File d'attente sécurisée anti-saturation</p>
             </div>
             <input type="file" className="hidden" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} />
           </label>
@@ -179,7 +176,7 @@ export default function AgentPreComptableBatchPro() {
                 : 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]'
             }`}
           >
-            {loading ? `Analyse IA en cours (${files.length} fichiers)...` : `Lancer l'analyse intelligente`}
+            {loading ? (progressText || "Analyse Bulldozer en cours...") : `Lancer l'analyse (${files.length} fichiers)`}
           </button>
         </div>
 
@@ -196,9 +193,9 @@ export default function AgentPreComptableBatchPro() {
               <div>
                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
-                  Validation & Résilience ({results.length} documents)
+                  Résultats validés ({results.length} documents)
                 </h3>
-                <p className="text-xs text-slate-400 mt-1">Modifiez les cellules ou relancez individuellement les factures en erreur.</p>
+                <p className="text-xs text-slate-400 mt-1">Modifiez les cellules ou relancez individuellement en cas d'incident.</p>
               </div>
               
               <button 
@@ -268,6 +265,7 @@ export default function AgentPreComptableBatchPro() {
                             <input 
                               type="text" 
                               value={item.data?.date_emission || ''} 
+                              onChange={(e) => handleCellchange if item.data?.date_emission else ''} 
                               onChange={(e) => handleCellChange(index, 'date_emission', e.target.value)}
                               className="bg-slate-950/80 border border-slate-700/60 focus:border-blue-500 rounded px-2.5 py-1.5 text-white w-32 text-sm outline-none transition-all"
                             />
@@ -291,7 +289,7 @@ export default function AgentPreComptableBatchPro() {
                           <td className="p-3">
                             <input 
                               type="text" 
-                              value= {item.data?.montant_ttc || ''} 
+                              value={item.data?.montant_ttc || ''} 
                               onChange={(e) => handleCellChange(index, 'montant_ttc', e.target.value)}
                               className="bg-slate-950/80 border border-slate-700/60 focus:border-emerald-500 text-emerald-400 font-bold rounded px-2.5 py-1.5 w-28 text-sm outline-none transition-all"
                             />
