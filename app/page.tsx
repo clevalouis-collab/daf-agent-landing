@@ -3,12 +3,14 @@
 import React, { useState } from 'react';
 
 export default function AgentPreComptable() {
-  const [file, setFile] = useState(null);
+  // On ajoute les types TypeScript pour calmer Vercel
+  const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [result, setResult] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
 
-  const handleFileChange = (e) => {
+  // On précise que 'e' est n'importe quel événement (any)
+  const handleFileChange = (e: any) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
       setError(null);
@@ -30,7 +32,6 @@ export default function AgentPreComptable() {
     formData.append('file', file);
 
     try {
-      // Appel direct à ton serveur Render
       const response = await fetch('https://agent-backend-0atw.onrender.com/extract-pdf', {
         method: 'POST',
         body: formData,
@@ -43,8 +44,8 @@ export default function AgentPreComptable() {
       }
 
       setResult(data.data);
-    } catch (err) {
-      setError(err.message);
+    } catch (err: any) { // On précise que l'erreur est de type any
+      setError(err.message || "Erreur de connexion.");
     } finally {
       setLoading(false);
     }
@@ -91,7 +92,6 @@ export default function AgentPreComptable() {
               </p>
               <p className="text-xs text-slate-500">PDF, JPG, PNG acceptés</p>
             </div>
-            {/* ICI : Le front-end accepte enfin les images ! */}
             <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} />
           </label>
 
@@ -133,7 +133,8 @@ export default function AgentPreComptable() {
                     {key.replace('_', ' ')}
                   </span>
                   <span className="block text-sm text-slate-200 font-medium">
-                    {value || <span className="text-slate-600 italic">Non détecté</span>}
+                    {/* @ts-ignore - On ignore l'erreur si la valeur n'est pas un string direct */}
+                    {value ? value.toString() : <span className="text-slate-600 italic">Non détecté</span>}
                   </span>
                 </div>
               ))}
