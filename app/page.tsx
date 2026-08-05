@@ -12,7 +12,7 @@ export default function AgentPreComptableBulldozer() {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<any[]>([]);
 
-  const handleFileChange = (e: any) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files) as File[];
       setFiles(selectedFiles);
@@ -306,7 +306,7 @@ export default function AgentPreComptableBulldozer() {
                           <td className="p-3">
                             <input 
                               type="text" 
-                            value={item.data?.iban || ''} 
+                              value={item.data?.iban || ''} 
                               onChange={(e) => handleCellChange(index, 'iban', e.target.value)}
                               className="bg-slate-950/80 border border-slate-700/60 focus:border-blue-500 rounded px-2.5 py-1.5 text-slate-300 w-44 text-xs font-mono outline-none transition-all"
                             />
