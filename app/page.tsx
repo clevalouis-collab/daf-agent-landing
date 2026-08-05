@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 
+const BACKEND_URL = "https://agent-backend-0atw.onrender.com";
+
 export default function AgentPreComptableBulldozer() {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
@@ -36,7 +38,7 @@ export default function AgentPreComptableBulldozer() {
     });
 
     try {
-      const response = await fetch('https://agent-backend-0atw.onrender.com/extract-batch', {
+      const response = await fetch(`${BACKEND_URL}/extract-batch`, {
         method: 'POST',
         body: formData,
       });
@@ -44,7 +46,7 @@ export default function AgentPreComptableBulldozer() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || "Une erreur est survenue lors de l'analyse.");
+        throw new Error(data.detail || `Erreur serveur (${response.status})`);
       }
 
       setResults(data.results);
@@ -68,7 +70,7 @@ export default function AgentPreComptableBulldozer() {
     formData.append('file', fileToRetry);
 
     try {
-      const response = await fetch('https://agent-backend-0atw.onrender.com/extract-pdf', {
+      const response = await fetch(`${BACKEND_URL}/extract-pdf`, {
         method: 'POST',
         body: formData,
       });
@@ -140,7 +142,7 @@ export default function AgentPreComptableBulldozer() {
             CLFinance
           </h1>
         </div>
-        <span className="text-xs text-amber-400 bg-amber-950/40 px-3 py-1.5 rounded-full border border-amber-800/50">Mode Bulldozer V37</span>
+        <span className="text-xs text-amber-400 bg-amber-950/40 px-3 py-1.5 rounded-full border border-amber-800/50">Enterprise V1.0 - Résilience Active</span>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 pt-12">
@@ -148,7 +150,7 @@ export default function AgentPreComptableBulldozer() {
         <div className="text-center mb-10">
           <h2 className="text-4xl font-bold text-blue-400 mb-4 tracking-tight">Agent Pré-Comptable IA</h2>
           <p className="text-slate-400 max-w-xl mx-auto">
-            Traitement industrialisé haute fiabilité. Glissez vos factures en masse, l'agent les avale une à une avec une précision chirurgicale.
+            Glissez vos factures en masse. En cas d'incident sur une ligne, relancez-la individuellement en un clic.
           </p>
         </div>
 
@@ -265,7 +267,6 @@ export default function AgentPreComptableBulldozer() {
                             <input 
                               type="text" 
                               value={item.data?.date_emission || ''} 
-                              onChange={(e) => handleCellchange if item.data?.date_emission else ''} 
                               onChange={(e) => handleCellChange(index, 'date_emission', e.target.value)}
                               className="bg-slate-950/80 border border-slate-700/60 focus:border-blue-500 rounded px-2.5 py-1.5 text-white w-32 text-sm outline-none transition-all"
                             />
@@ -305,7 +306,7 @@ export default function AgentPreComptableBulldozer() {
                           <td className="p-3">
                             <input 
                               type="text" 
-                              value={item.data?.iban || ''} 
+                            value={item.data?.iban || ''} 
                               onChange={(e) => handleCellChange(index, 'iban', e.target.value)}
                               className="bg-slate-950/80 border border-slate-700/60 focus:border-blue-500 rounded px-2.5 py-1.5 text-slate-300 w-44 text-xs font-mono outline-none transition-all"
                             />
