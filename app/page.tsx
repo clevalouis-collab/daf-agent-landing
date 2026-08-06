@@ -29,33 +29,51 @@ export default function AgentPreComptableBulldozer() {
 
     setLoading(true);
     setError(null);
-    setResults([]);
-    setProgressText(`Mode Bulldozer activé : Analyse de ${files.length} documents en cours...`);
+    
+    // Initialisation du tableau de résultats vide pour les 7 fichiers
+    const emptyResults = files.map(file => ({ filename: file.name, status: 'en_attente' }));
+    setResults(emptyResults);
 
-    const formData = new FormData();
-    files.forEach((file) => {
-      formData.append('files', file);
-    });
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      setProgressText(`Analyse du document ${i + 1} sur ${files.length} (${file.name})...`);
 
-    try {
-      const response = await fetch(`${BACKEND_URL}/extract-batch`, {
-        method: 'POST',
-        body: formData,
-      });
+      const formData = new FormData();
+      formData.append('file', file);
 
-      const data = await response.json();
+      try {
+        const response = await fetch(`${BACKEND_URL}/extract-pdf`, {
+          method: 'POST',
+          body: formData,
+        });
 
-      if (!response.ok) {
-        throw new Error(data.detail || `Erreur serveur (${response.status})`);
+        const data = await response.json();
+
+        setResults(prev => {
+          const updated = [...prev];
+          if (!response.ok) {
+            updated[i] = { filename: file.name, error: data.detail || "Erreur d'analyse" };
+          } else {
+            updated[i] = data;
+          }
+          return updated;
+        });
+      } catch (err: any) {
+        setResults(prev => {
+          const updated = [...prev];
+          updated[i] = { filename: file.name, error: err.message || "Erreur de connexion" };
+          return updated;
+        });
       }
 
-      setResults(data.results);
-    } catch (err: any) {
-      setError(err.message || "Erreur de connexion avec le serveur.");
-    } finally {
-      setLoading(false);
-      setProgressText("");
+      // Petite pause anti-saturation de 1.2 seconde entre chaque fichier
+      if (i < files.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1200));
+      }
     }
+
+    setLoading(false);
+    setProgressText("");
   };
 
   const handleRetrySingle = async (index: number, filename: string) => {
@@ -150,7 +168,7 @@ export default function AgentPreComptableBulldozer() {
         <div className="text-center mb-10">
           <h2 className="text-4xl font-bold text-blue-400 mb-4 tracking-tight">Agent Pré-Comptable IA</h2>
           <p className="text-slate-400 max-w-xl mx-auto">
-            Glissez vos factures en masse. En cas d'incident sur une ligne, relancez-la individuellement en un clic.
+            Glissez vos factures en masse. Suivez l'avancement en direct et relancez individuellement en cas d'incident.
           </p>
         </div>
 
@@ -178,7 +196,7 @@ export default function AgentPreComptableBulldozer() {
                 : 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]'
             }`}
           >
-            {loading ? (progressText || "Analyse Bulldozer en cours...") : `Lancer l'analyse (${files.length} fichiers)`}
+            {loading ? (progressText || "Analyse en cours...") : `Lancer l'analyse (${files.length} fichiers)`}
           </button>
         </div>
 
@@ -194,8 +212,8 @@ export default function AgentPreComptableBulldozer() {
             <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
               <div>
                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
-                  Résultats validés ({results.length} documents)
+                  <span className={`w-3 h-3 rounded-full ${loading ? 'bg-amber-500 animate-ping' : 'bg-green-500'}`}></span>
+                  Résultats en direct ({results.filter(r => r.data).length} / {results.length} traités)
                 </h3>
                 <p className="text-xs text-slate-400 mt-1">Modifiez les cellules ou relancez individuellement en cas d'incident.</p>
               </div>
@@ -232,7 +250,15 @@ export default function AgentPreComptableBulldozer() {
                       <td className="p-4 font-medium text-slate-400 text-xs truncate max-w-[130px]" title={item.filename}>
                         {item.filename}
                       </td>
-                      {item.error ? (
+                      {item.status === 'en_attente' ? (
+                        <td colSpan={8} className="p-4 text-slate-500 text-xs italic">
+                          ⏳ En attente dans la file...
+                        </td>
+                      ) : !item.data && !item.error ? (
+                        <td colSpan={8} className="p-4 text-amber-400 text-xs animate-pulse font-medium">
+                          🔄 Analyse par l'IA en cours...
+                        </td>
+                      ) : item.error ? (
                         <td colSpan={8} className="p-4 bg-red-950/20">
                           <div className="flex items-center justify-between">
                             <span className="text-red-400 text-xs font-semibold">⚠️ Échec : {item.error}</span>
