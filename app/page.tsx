@@ -12,7 +12,9 @@ const BACKEND_URL = "https://agent-backend-0atw.onrender.com";
 
 export default function AgentPreComptableEnterprise() {
   const [activeTab, setActiveTab] = useState<'analyse' | 'historique'>('analyse');
-  const [selectedClient, setSelectedClient] = useState("Client par défaut");
+  const [selectedClient, setSelectedClient] = useState("");
+  const [customClient, setCustomClient] = useState("");
+  const [filterClient, setFilterClient] = useState("TOUS");
   
   // États de l'analyse
   const [files, setFiles] = useState<File[]>([]);
@@ -57,7 +59,14 @@ export default function AgentPreComptableEnterprise() {
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     
-    if (data) setHistory(data);
+    if (data) {
+      setHistory(data);
+      // Sélectionner le premier client par défaut si la liste n'est pas vide
+      const uniqueClients = Array.from(new Set(data.map(i => i.client_name).filter(Boolean)));
+      if (uniqueClients.length > 0 && !selectedClient) {
+        setSelectedClient(uniqueClients[0] as string);
+      }
+    }
     setLoadingHistory(false);
   };
 
@@ -83,6 +92,14 @@ export default function AgentPreComptableEnterprise() {
     await supabase.auth.signOut();
   };
 
+  // --- EXTRACTION DE LA LISTE DES CLIENTS EXISTANTS ---
+  const existingClients = Array.from(new Set(history.map(item => item.client_name).filter(Boolean)));
+
+  const getActiveClientName = () => {
+    if (selectedClient === "AUTRE") return customClient.trim();
+    return selectedClient || existingClients[0] || "Client par défaut";
+  };
+
   // --- LOGIQUE D'ANALYSE ---
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -93,7 +110,11 @@ export default function AgentPreComptableEnterprise() {
   };
 
   const handleUploadBatch = async () => {
-    if (files.length === 0) return;
+    const finalClient = getActiveClientName();
+    if (files.length === 0 || !finalClient) {
+      alert("Veuillez sélectionner ou saisir un nom de client valide.");
+      return;
+    }
     setLoading(true);
     
     const emptyResults = files.map(file => ({ filename: file.name, status: 'en_attente' }));
@@ -129,7 +150,7 @@ export default function AgentPreComptableEnterprise() {
            const newInvoice = {
               user_id: session.user.id,
               filename: file.name,
-              client_name: selectedClient || "Client par défaut",
+              client_name: finalClient,
               fournisseur: data.data.fournisseur,
               numero_facture: data.data.numero_facture,
               date_emission: data.data.date_emission ? new Date(data.data.date_emission).toISOString() : null,
@@ -200,10 +221,16 @@ export default function AgentPreComptableEnterprise() {
     document.body.removeChild(link);
   };
 
-  // --- GROUPEMENT DES DONNÉES HISTORIQUES (Client > Date) ---
+  // --- GROUPEMENT ET FILTRAGE DES DONNÉES HISTORIQUES ---
   const groupHistory = () => {
     const clientsMap: Record<string, Record<string, any[]>> = {};
-    history.forEach(item => {
+    
+    // Filtrer selon le menu déroulant de l'historique
+    const filteredHistory = filterClient === "TOUS" 
+      ? history 
+      : history.filter(item => item.client_name === filterClient);
+
+    filteredHistory.forEach(item => {
       const client = item.client_name || "Client par défaut";
       const dateObj = item.created_at ? new Date(item.created_at) : new Date();
       const dateKey = dateObj.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -248,6 +275,7 @@ export default function AgentPreComptableEnterprise() {
   }
 
   const groupedHistory = groupHistory();
+  const activeClientFinal = getActiveClientName();
 
   // --- ECRAN 3 : L'APPLICATION ---
   return (
@@ -302,16 +330,36 @@ export default function AgentPreComptableEnterprise() {
 
             <div className="w-full bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl p-8 shadow-2xl">
               
-              {/* SELECTEUR DE CLIENT */}
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-slate-300 mb-2">Client concerné :</label>
-                <input 
-                  type="text" 
-                  value={selectedClient} 
-                  onChange={(e) => setSelectedClient(e.target.value)}
-                  placeholder="Nom du client (ex: Entreprise Dupont)" 
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white outline-none focus:border-blue-500 font-medium"
-                />
+              {/* SELECTEUR DE CLIENT (Menu déroulant + Option Nouveau) */}
+              <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-300 mb-2">Client concerné :</label>
+                  <select 
+                    value={selectedClient} 
+                    onChange={(e) => setSelectedClient(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white outline-none focus:border-blue-500 font-medium"
+                  >
+                    {existingClients.length === 0 && <option value="Client par défaut">Client par défaut</option>}
+                    {existingClients.map((c: any) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                    <option value="AUTRE">+ Ajouter un nouveau client...</option>
+                  </select>
+                </div>
+
+                {/* Si "AUTRE" est sélectionné, on affiche un champ texte */}
+                {(selectedClient === "AUTRE" || existingClients.length === 0) && (
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-300 mb-2">Nom du nouveau client :</label>
+                    <input 
+                      type="text" 
+                      value={customClient} 
+                      onChange={(e) => setCustomClient(e.target.value)}
+                      placeholder="Ex: Entreprise Dupont" 
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-white outline-none focus:border-blue-500 font-medium"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* ZONE DE DROP */}
@@ -324,7 +372,7 @@ export default function AgentPreComptableEnterprise() {
               </label>
 
               <button onClick={handleUploadBatch} disabled={loading || files.length === 0} className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${loading || files.length === 0 ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]'}`}>
-                {loading ? (progressText || "Analyse en cours...") : `Lancer l'analyse pour "${selectedClient}" (${files.length} fichiers)`}
+                {loading ? (progressText || "Analyse en cours...") : `Lancer l'analyse pour "${activeClientFinal}" (${files.length} fichiers)`}
               </button>
             </div>
 
@@ -373,33 +421,48 @@ export default function AgentPreComptableEnterprise() {
           </div>
         )}
 
-        {/* ONGLET 2 : HISTORIQUE MULTI-CLIENTS */}
+        {/* ONGLET 2 : HISTORIQUE MULTI-CLIENTS AVEC FILTRE */}
         {activeTab === 'historique' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-white mb-2">Historique par Client</h2>
-              <p className="text-slate-400 text-sm">Retrouvez et téléchargez les exports CSV classés par client et par date.</p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-1">Historique par Client</h2>
+                <p className="text-slate-400 text-sm">Filtrez par client pour afficher uniquement ses documents.</p>
+              </div>
+
+              {/* FILTRE PAR CLIENT */}
+              <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 p-2 rounded-xl">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider pl-2">Filtrer :</span>
+                <select 
+                  value={filterClient} 
+                  onChange={(e) => setFilterClient(e.target.value)}
+                  className="bg-slate-950 border border-slate-700 text-white rounded-lg px-3 py-1.5 text-sm outline-none focus:border-blue-500"
+                >
+                  <option value="TOUS">Tous les clients</option>
+                  {existingClients.map((c: any) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {loadingHistory ? (
               <div className="p-10 text-center text-slate-500 bg-slate-900 border border-slate-800 rounded-2xl">Chargement de l'historique...</div>
             ) : Object.keys(groupedHistory).length === 0 ? (
-              <div className="p-10 text-center text-slate-500 bg-slate-900 border border-slate-800 rounded-2xl">Aucune facture enregistrée pour le moment.</div>
+              <div className="p-10 text-center text-slate-500 bg-slate-900 border border-slate-800 rounded-2xl">Aucune facture trouvée pour ce filtre.</div>
             ) : (
               <div className="space-y-8">
                 {Object.entries(groupedHistory).map(([clientName, datesMap]) => (
                   <div key={clientName} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                    {/* Nom du Client */}
                     <h3 className="text-xl font-bold text-amber-400 mb-4 pb-3 border-b border-slate-800 flex items-center gap-3">
                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                       {clientName}
                     </h3>
 
-                    {/* Sous-dossiers par Date */}
                     <div className="space-y-4 pl-2 sm:pl-6">
                       {Object.entries(datesMap).map(([dateKey, items]) => {
                         const folderKey = `${clientName}_${dateKey}`;
-                        const isOpen = openFolders[folderKey] !== false; // Ouvert par défaut
+                        const isOpen = openFolders[folderKey] !== false;
                         return (
                           <div key={dateKey} className="bg-slate-950/60 border border-slate-800 rounded-xl overflow-hidden">
                             <button 
@@ -425,7 +488,6 @@ export default function AgentPreComptableEnterprise() {
                               </div>
                             </button>
 
-                            {/* Tableau des factures pour ce client à cette date */}
                             {isOpen && (
                               <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse text-sm">
