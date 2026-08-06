@@ -11,35 +11,56 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const BACKEND_URL = "https://agent-backend-0atw.onrender.com";
 
 export default function AgentPreComptableEnterprise() {
+  const [activeTab, setActiveTab] = useState<'analyse' | 'historique'>('analyse');
+  
+  // États de l'analyse
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [progressText, setProgressText] = useState("");
-  const [retryingIndex, setRetryingIndex] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<any[]>([]);
   
-  // --- ÉTATS AUTHENTIFICATION ---
+  // État de l'historique
+  const [history, setHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  
+  // États d'authentification
   const [session, setSession] = useState<any>(null);
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Vérifier si on est déjà connecté au chargement de la page
+  // --- INITIALISATION & AUTHENTIFICATION ---
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setAuthLoading(false);
+      if (session) fetchHistory(session.user.id);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session) fetchHistory(session.user.id);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // --- ACTIONS AUTHENTIFICATION ---
+  // --- FONCTION POUR RECUPERER L'HISTORIQUE ---
+  const fetchHistory = async (userId: string) => {
+    setLoadingHistory(true);
+    const { data, error } = await supabase
+      .from('invoices')
+      .select('*')
+      .eq('user_id', userId)
+      .order('id', { ascending: false }); // Trie du plus récent au plus ancien
+    
+    if (data) {
+      setHistory(data);
+    }
+    setLoadingHistory(false);
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthLoading(true);
@@ -62,12 +83,11 @@ export default function AgentPreComptableEnterprise() {
     await supabase.auth.signOut();
   };
 
-  // --- LOGIQUE METIER (Upload, Analyse, etc.) ---
+  // --- LOGIQUE D'ANALYSE ---
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files) as File[];
       setFiles(selectedFiles);
-      setError(null);
       setResults([]);
     }
   };
@@ -75,10 +95,11 @@ export default function AgentPreComptableEnterprise() {
   const handleUploadBatch = async () => {
     if (files.length === 0) return;
     setLoading(true);
-    setError(null);
     
     const emptyResults = files.map(file => ({ filename: file.name, status: 'en_attente' }));
     setResults(emptyResults);
+
+    let newSavedInvoices = [];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -105,9 +126,9 @@ export default function AgentPreComptableEnterprise() {
           return updated;
         });
 
-        // SAUVEGARDE EN BASE DE DONNÉES SUPABASE
+        // Sauvegarde en base
         if (response.ok && data.data && session?.user?.id) {
-           await supabase.from('invoices').insert([{
+           const newInvoice = {
               user_id: session.user.id,
               filename: file.name,
               fournisseur: data.data.fournisseur,
@@ -118,7 +139,10 @@ export default function AgentPreComptableEnterprise() {
               montant_ttc: data.data.montant_ttc,
               devise: data.data.devise,
               iban: data.data.iban,
-            }]);
+            };
+           await supabase.from('invoices').insert([newInvoice]);
+           // On met à jour l'historique en direct
+           fetchHistory(session.user.id);
         }
       } catch (err: any) {
         setResults(prev => {
@@ -131,26 +155,6 @@ export default function AgentPreComptableEnterprise() {
     }
     setLoading(false);
     setProgressText("");
-  };
-
-  const handleRetrySingle = async (index: number, filename: string) => {
-    const fileToRetry = files.find(f => f.name === filename);
-    if (!fileToRetry) return;
-    setRetryingIndex(index);
-    const formData = new FormData();
-    formData.append('file', fileToRetry);
-    try {
-      const response = await fetch(`${BACKEND_URL}/extract-pdf`, { method: 'POST', body: formData });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || "Erreur.");
-      const updatedResults = [...results];
-      updatedResults[index] = data;
-      setResults(updatedResults);
-    } catch (err: any) {
-      alert(`Échec : ${err.message}`);
-    } finally {
-      setRetryingIndex(null);
-    }
   };
 
   const handleCellChange = (index: number, field: string, value: string) => {
@@ -170,41 +174,10 @@ export default function AgentPreComptableEnterprise() {
     return Math.abs((ht + tva) - ttc) < 0.1;
   };
 
-  const exportToCSV = () => {
-    if (results.length === 0) return;
-    const headers = ["Fichier", "Fournisseur", "Numero Facture", "Date Emission", "Montant HT", "TVA", "Montant TTC", "Devise", "IBAN"];
-    let csvContent = "data:text/csv;charset=utf-8," + headers.join(";") + "\n";
-    results.forEach((item) => {
-      if (item.data) {
-        const row = [
-          item.filename,
-          `"${item.data.fournisseur || ''}"`,
-          `"${item.data.numero_facture || ''}"`,
-          item.data.date_emission || '',
-          item.data.montant_ht || '',
-          item.data.tva || '',
-          item.data.montant_ttc || '',
-          item.data.devise || '',
-          item.data.iban || ''
-        ];
-        csvContent += row.join(";") + "\n";
-      }
-    });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "export_erp_clfinance_enterprise.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   // --- ECRAN 1 : CHARGEMENT INITIAL ---
-  if (authLoading) {
-    return <div className="min-h-screen bg-[#0a0f1c] flex items-center justify-center text-blue-400 font-bold">Chargement de l'espace sécurisé...</div>;
-  }
+  if (authLoading) return <div className="min-h-screen bg-[#0a0f1c] flex items-center justify-center text-blue-400 font-bold">Chargement de l'espace sécurisé...</div>;
 
-  // --- ECRAN 2 : CONNEXION (Si pas connecté) ---
+  // --- ECRAN 2 : CONNEXION ---
   if (!session) {
     return (
       <div className="min-h-screen bg-[#0a0f1c] flex items-center justify-center p-4">
@@ -215,16 +188,9 @@ export default function AgentPreComptableEnterprise() {
              </div>
           </div>
           <h2 className="text-2xl font-bold text-white mb-6 text-center">Connexion DAF</h2>
-          
           <form className="flex flex-col gap-4">
-            <input 
-              type="email" placeholder="Email professionnel" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)}
-              className="bg-slate-950 border border-slate-700 text-white rounded-lg p-3 outline-none focus:border-blue-500"
-            />
-            <input 
-              type="password" placeholder="Mot de passe" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)}
-              className="bg-slate-950 border border-slate-700 text-white rounded-lg p-3 outline-none focus:border-blue-500"
-            />
+            <input type="email" placeholder="Email professionnel" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} className="bg-slate-950 border border-slate-700 text-white rounded-lg p-3 outline-none focus:border-blue-500" />
+            <input type="password" placeholder="Mot de passe" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} className="bg-slate-950 border border-slate-700 text-white rounded-lg p-3 outline-none focus:border-blue-500" />
             {authError && <p className="text-red-400 text-sm">{authError}</p>}
             <div className="flex gap-3 mt-4">
                <button onClick={handleLogin} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-colors">Connexion</button>
@@ -236,10 +202,11 @@ export default function AgentPreComptableEnterprise() {
     );
   }
 
-  // --- ECRAN 3 : L'APP COMPLETE (Si connecté) ---
+  // --- ECRAN 3 : L'APPLICATION ---
   return (
     <div className="min-h-screen bg-[#0a0f1c] text-white font-sans selection:bg-blue-500/35 pb-20">
       
+      {/* HEADER */}
       <header className="w-full p-6 flex items-center justify-between border-b border-slate-800/60 bg-slate-900/30 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-br from-amber-300 to-amber-600 shadow-[0_0_15px_rgba(217,119,6,0.4)]">
@@ -257,72 +224,136 @@ export default function AgentPreComptableEnterprise() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 pt-12">
-        <div className="text-center mb-10">
-          <h2 className="text-4xl font-bold text-blue-400 mb-4 tracking-tight">Agent Pré-Comptable IA</h2>
-          <p className="text-slate-400 max-w-xl mx-auto">Vos données sont désormais sauvegardées de manière chiffrée sur votre espace personnel.</p>
-        </div>
-
-        <div className="w-full bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl p-8 shadow-2xl">
-          <label className="flex flex-col items-center justify-center w-full h-44 border-2 border-dashed border-slate-700 rounded-xl hover:border-blue-500 hover:bg-slate-800/50 transition-all cursor-pointer mb-6 group">
-            <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
-              <svg className="w-12 h-12 mb-3 text-blue-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-              <p className="mb-2 text-sm text-slate-300 font-semibold">{files.length > 0 ? `${files.length} fichier(s) sélectionné(s)` : "Glissez vos factures ici (PDF, JPG, PNG)"}</p>
-            </div>
-            <input type="file" className="hidden" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} />
-          </label>
-          <button onClick={handleUploadBatch} disabled={loading || files.length === 0} className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${loading || files.length === 0 ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]'}`}>
-            {loading ? (progressText || "Analyse en cours...") : `Lancer l'analyse sécurisée (${files.length} fichiers)`}
+      {/* NAVIGATION (ONGLETS) */}
+      <div className="max-w-7xl mx-auto px-4 mt-8">
+        <div className="flex space-x-4 border-b border-slate-800 pb-px">
+          <button 
+            onClick={() => setActiveTab('analyse')}
+            className={`py-3 px-6 text-sm font-bold border-b-2 transition-colors ${activeTab === 'analyse' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
+          >
+            Nouvelle Analyse IA
+          </button>
+          <button 
+            onClick={() => setActiveTab('historique')}
+            className={`py-3 px-6 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'historique' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
+          >
+            Mon Historique
+            <span className="bg-slate-800 text-slate-300 py-0.5 px-2 rounded-full text-xs">{history.length}</span>
           </button>
         </div>
+      </div>
 
-        {results.length > 0 && (
-          <div className="mt-10">
-            <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-              <div>
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <span className={`w-3 h-3 rounded-full ${loading ? 'bg-amber-500 animate-ping' : 'bg-green-500'}`}></span>
-                  Résultats validés
-                </h3>
-              </div>
-              <button onClick={exportToCSV} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-[0_0_15px_rgba(5,150,105,0.4)] transition-all">
-                Télécharger Export CSV
+      <main className="max-w-7xl mx-auto px-4 pt-8">
+        
+        {/* ONGLET 1 : ANALYSE */}
+        {activeTab === 'analyse' && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="text-center mb-10">
+              <h2 className="text-4xl font-bold text-white mb-4 tracking-tight">Agent Pré-Comptable</h2>
+              <p className="text-slate-400 max-w-xl mx-auto">Glissez vos factures pour extraire les données. Elles seront automatiquement sauvegardées.</p>
+            </div>
+
+            <div className="w-full bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl p-8 shadow-2xl">
+              <label className="flex flex-col items-center justify-center w-full h-44 border-2 border-dashed border-slate-700 rounded-xl hover:border-blue-500 hover:bg-slate-800/50 transition-all cursor-pointer mb-6 group">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
+                  <svg className="w-12 h-12 mb-3 text-blue-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                  <p className="mb-2 text-sm text-slate-300 font-semibold">{files.length > 0 ? `${files.length} fichier(s) sélectionné(s)` : "Glissez vos factures ici (PDF, JPG, PNG)"}</p>
+                </div>
+                <input type="file" className="hidden" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} />
+              </label>
+              <button onClick={handleUploadBatch} disabled={loading || files.length === 0} className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${loading || files.length === 0 ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]'}`}>
+                {loading ? (progressText || "Analyse en cours...") : `Lancer l'analyse sécurisée (${files.length} fichiers)`}
               </button>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto shadow-2xl">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-800/80 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
-                    <th className="p-4">Fichier</th><th className="p-4">Fournisseur</th><th className="p-4">N° Facture</th><th className="p-4">Date</th><th className="p-4">HT</th><th className="p-4">TVA</th><th className="p-4">TTC</th><th className="p-4">Devise</th><th className="p-4">IBAN</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800 text-sm">
-                  {results.map((item, index) => {
-                    const isMathValid = checkMathConsistency(item.data);
-                    return (
-                      <tr key={index} className="hover:bg-slate-800/20">
-                        <td className="p-4 text-xs truncate max-w-[130px]">{item.filename}</td>
-                        {item.status === 'en_attente' ? <td colSpan={8} className="p-4 text-slate-500 italic">⏳ Attente...</td>
-                        : !item.data && !item.error ? <td colSpan={8} className="p-4 text-amber-400 font-medium">🔄 Analyse...</td>
-                        : item.error ? <td colSpan={8} className="p-4 text-red-400 font-bold">⚠️ Échec : {item.error}</td>
-                        : (
-                          <>
-                            <td className="p-3"><input type="text" value={item.data?.fournisseur || ''} onChange={(e) => handleCellChange(index, 'fournisseur', e.target.value)} className="bg-slate-950/80 border border-slate-700/60 rounded px-2.5 py-1.5 w-full outline-none text-white" /></td>
-                            <td className="p-3"><input type="text" value={item.data?.numero_facture || ''} onChange={(e) => handleCellChange(index, 'numero_facture', e.target.value)} className="bg-slate-950/80 border border-slate-700/60 rounded px-2.5 py-1.5 w-full outline-none text-white" /></td>
-                            <td className="p-3"><input type="text" value={item.data?.date_emission || ''} onChange={(e) => handleCellChange(index, 'date_emission', e.target.value)} className="bg-slate-950/80 border border-slate-700/60 rounded px-2.5 py-1.5 w-24 outline-none text-white" /></td>
-                            <td className="p-3"><input type="text" value={item.data?.montant_ht ?? ''} onChange={(e) => handleCellChange(index, 'montant_ht', e.target.value)} className="bg-slate-950/80 border border-slate-700/60 rounded px-2.5 py-1.5 w-20 outline-none text-white" /></td>
-                            <td className="p-3"><input type="text" value={item.data?.tva ?? ''} onChange={(e) => handleCellChange(index, 'tva', e.target.value)} className="bg-slate-950/80 border border-slate-700/60 rounded px-2.5 py-1.5 w-16 outline-none text-white" /></td>
-                            <td className="p-3"><input type="text" value={item.data?.montant_ttc ?? ''} onChange={(e) => handleCellChange(index, 'montant_ttc', e.target.value)} className={`bg-slate-950/80 border rounded px-2.5 py-1.5 w-24 outline-none font-bold ${!isMathValid ? 'border-amber-500 text-amber-400' : 'border-slate-700/60 text-emerald-400'}`} /></td>
-                            <td className="p-3"><input type="text" value={item.data?.devise || ''} onChange={(e) => handleCellChange(index, 'devise', e.target.value)} className="bg-slate-950/80 border border-slate-700/60 rounded px-2.5 py-1.5 w-16 outline-none text-white" /></td>
-                            <td className="p-3"><input type="text" value={item.data?.iban || ''} onChange={(e) => handleCellChange(index, 'iban', e.target.value)} className="bg-slate-950/80 border border-slate-700/60 rounded px-2.5 py-1.5 w-32 text-xs font-mono outline-none text-white" /></td>
-                          </>
-                        )}
+            {results.length > 0 && (
+              <div className="mt-10">
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                  <span className={`w-3 h-3 rounded-full ${loading ? 'bg-amber-500 animate-ping' : 'bg-green-500'}`}></span>
+                  Résultats immédiats
+                </h3>
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto shadow-2xl">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-800/80 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
+                        <th className="p-4">Fichier</th><th className="p-4">Fournisseur</th><th className="p-4">N° Facture</th><th className="p-4">Date</th><th className="p-4">HT</th><th className="p-4">TVA</th><th className="p-4">TTC</th><th className="p-4">Devise</th><th className="p-4">IBAN</th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800 text-sm">
+                      {results.map((item, index) => {
+                        const isMathValid = checkMathConsistency(item.data);
+                        return (
+                          <tr key={index} className="hover:bg-slate-800/20">
+                            <td className="p-4 text-xs truncate max-w-[130px]">{item.filename}</td>
+                            {item.status === 'en_attente' ? <td colSpan={8} className="p-4 text-slate-500 italic">⏳ Attente...</td>
+                            : !item.data && !item.error ? <td colSpan={8} className="p-4 text-amber-400 font-medium">🔄 Analyse...</td>
+                            : item.error ? <td colSpan={8} className="p-4 text-red-400 font-bold">⚠️ Échec : {item.error}</td>
+                            : (
+                              <>
+                                <td className="p-3"><input type="text" value={item.data?.fournisseur || ''} onChange={(e) => handleCellChange(index, 'fournisseur', e.target.value)} className="bg-slate-950/80 border border-slate-700/60 rounded px-2.5 py-1.5 w-full outline-none text-white" /></td>
+                                <td className="p-3"><input type="text" value={item.data?.numero_facture || ''} onChange={(e) => handleCellChange(index, 'numero_facture', e.target.value)} className="bg-slate-950/80 border border-slate-700/60 rounded px-2.5 py-1.5 w-full outline-none text-white" /></td>
+                                <td className="p-3"><input type="text" value={item.data?.date_emission || ''} onChange={(e) => handleCellChange(index, 'date_emission', e.target.value)} className="bg-slate-950/80 border border-slate-700/60 rounded px-2.5 py-1.5 w-24 outline-none text-white" /></td>
+                                <td className="p-3"><input type="text" value={item.data?.montant_ht ?? ''} onChange={(e) => handleCellChange(index, 'montant_ht', e.target.value)} className="bg-slate-950/80 border border-slate-700/60 rounded px-2.5 py-1.5 w-20 outline-none text-white" /></td>
+                                <td className="p-3"><input type="text" value={item.data?.tva ?? ''} onChange={(e) => handleCellChange(index, 'tva', e.target.value)} className="bg-slate-950/80 border border-slate-700/60 rounded px-2.5 py-1.5 w-16 outline-none text-white" /></td>
+                                <td className="p-3"><input type="text" value={item.data?.montant_ttc ?? ''} onChange={(e) => handleCellChange(index, 'montant_ttc', e.target.value)} className={`bg-slate-950/80 border rounded px-2.5 py-1.5 w-24 outline-none font-bold ${!isMathValid ? 'border-amber-500 text-amber-400' : 'border-slate-700/60 text-emerald-400'}`} /></td>
+                                <td className="p-3"><input type="text" value={item.data?.devise || ''} onChange={(e) => handleCellChange(index, 'devise', e.target.value)} className="bg-slate-950/80 border border-slate-700/60 rounded px-2.5 py-1.5 w-16 outline-none text-white" /></td>
+                                <td className="p-3"><input type="text" value={item.data?.iban || ''} onChange={(e) => handleCellChange(index, 'iban', e.target.value)} className="bg-slate-950/80 border border-slate-700/60 rounded px-2.5 py-1.5 w-32 text-xs font-mono outline-none text-white" /></td>
+                              </>
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ONGLET 2 : HISTORIQUE */}
+        {activeTab === 'historique' && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex justify-between items-end mb-6">
+               <div>
+                 <h2 className="text-2xl font-bold text-white mb-2">Historique des factures</h2>
+                 <p className="text-slate-400 text-sm">Toutes les données extraites et sauvegardées dans votre espace sécurisé.</p>
+               </div>
+            </div>
+
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto shadow-2xl">
+              {loadingHistory ? (
+                <div className="p-10 text-center text-slate-500">Chargement de l'historique...</div>
+              ) : history.length === 0 ? (
+                <div className="p-10 text-center text-slate-500">Aucune facture dans votre historique pour le moment.</div>
+              ) : (
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-800/80 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
+                      <th className="p-4">Fichier</th>
+                      <th className="p-4">Fournisseur</th>
+                      <th className="p-4">N° Facture</th>
+                      <th className="p-4">Date</th>
+                      <th className="p-4">HT</th>
+                      <th className="p-4">TVA</th>
+                      <th className="p-4">TTC</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800 text-sm text-slate-300">
+                    {history.map((invoice, index) => (
+                      <tr key={index} className="hover:bg-slate-800/40 transition-colors">
+                        <td className="p-4 truncate max-w-[150px] text-xs text-slate-500">{invoice.filename}</td>
+                        <td className="p-4 font-medium text-white">{invoice.fournisseur || '-'}</td>
+                        <td className="p-4 text-amber-100">{invoice.numero_facture || '-'}</td>
+                        <td className="p-4">{invoice.date_emission ? new Date(invoice.date_emission).toLocaleDateString() : '-'}</td>
+                        <td className="p-4">{invoice.montant_ht ? `${invoice.montant_ht} ${invoice.devise || '€'}` : '-'}</td>
+                        <td className="p-4 text-slate-500">{invoice.tva || '-'}</td>
+                        <td className="p-4 font-bold text-emerald-400">{invoice.montant_ttc ? `${invoice.montant_ttc} ${invoice.devise || '€'}` : '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         )}
