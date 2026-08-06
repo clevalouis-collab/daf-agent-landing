@@ -19,9 +19,10 @@ export default function AgentPreComptableEnterprise() {
   const [progressText, setProgressText] = useState("");
   const [results, setResults] = useState<any[]>([]);
   
-  // État de l'historique
+  // État de l'historique et des dossiers
   const [history, setHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({});
   
   // États d'authentification
   const [session, setSession] = useState<any>(null);
@@ -53,7 +54,7 @@ export default function AgentPreComptableEnterprise() {
       .from('invoices')
       .select('*')
       .eq('user_id', userId)
-      .order('id', { ascending: false }); // Trie du plus récent au plus ancien
+      .order('created_at', { ascending: false }); // Trie du plus récent au plus ancien
     
     if (data) {
       setHistory(data);
@@ -99,8 +100,6 @@ export default function AgentPreComptableEnterprise() {
     const emptyResults = files.map(file => ({ filename: file.name, status: 'en_attente' }));
     setResults(emptyResults);
 
-    let newSavedInvoices = [];
-
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       setProgressText(`Analyse du document ${i + 1} sur ${files.length} (${file.name})...`);
@@ -139,6 +138,7 @@ export default function AgentPreComptableEnterprise() {
               montant_ttc: data.data.montant_ttc,
               devise: data.data.devise,
               iban: data.data.iban,
+              created_at: new Date().toISOString(), // On force l'heure exacte de l'analyse
             };
            await supabase.from('invoices').insert([newInvoice]);
            // On met à jour l'historique en direct
@@ -173,6 +173,27 @@ export default function AgentPreComptableEnterprise() {
     if (ttc === 0) return true;
     return Math.abs((ht + tva) - ttc) < 0.1;
   };
+
+  // --- LOGIQUE DES DOSSIERS DE DATE ---
+  const groupHistoryByDate = (historyArray: any[]) => {
+    const groups: Record<string, any[]> = {};
+    historyArray.forEach(item => {
+      // Si la date d'analyse n'existe pas, on prend la date du jour par défaut
+      const dateObj = item.created_at ? new Date(item.created_at) : new Date();
+      // On formate la date en beau français (ex: "jeudi 6 août 2026")
+      const dateKey = dateObj.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      
+      if (!groups[dateKey]) groups[dateKey] = [];
+      groups[dateKey].push(item);
+    });
+    return groups;
+  };
+
+  const toggleFolder = (dateKey: string) => {
+    setOpenFolders(prev => ({ ...prev, [dateKey]: prev[dateKey] === false ? true : false }));
+  };
+
+  const groupedHistory = groupHistoryByDate(history);
 
   // --- ECRAN 1 : CHARGEMENT INITIAL ---
   if (authLoading) return <div className="min-h-screen bg-[#0a0f1c] flex items-center justify-center text-blue-400 font-bold">Chargement de l'espace sécurisé...</div>;
@@ -276,7 +297,7 @@ export default function AgentPreComptableEnterprise() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-slate-800/80 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
-                        <th className="p-4">Fichier</th><th className="p-4">Fournisseur</th><th className="p-4">N° Facture</th><th className="p-4">Date</th><th className="p-4">HT</th><th className="p-4">TVA</th><th className="p-4">TTC</th><th className="p-4">Devise</th><th className="p-4">IBAN</th>
+                        <th className="p-4">Fichier</th><th className="p-4">Fournisseur</th><th className="p-4">N° Facture</th><th className="p-4">Date Em.</th><th className="p-4">HT</th><th className="p-4">TVA</th><th className="p-4">TTC</th><th className="p-4">Devise</th><th className="p-4">IBAN</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800 text-sm">
@@ -311,50 +332,88 @@ export default function AgentPreComptableEnterprise() {
           </div>
         )}
 
-        {/* ONGLET 2 : HISTORIQUE */}
+        {/* ONGLET 2 : HISTORIQUE AVEC DOSSIERS DEROULANTS */}
         {activeTab === 'historique' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex justify-between items-end mb-6">
                <div>
-                 <h2 className="text-2xl font-bold text-white mb-2">Historique des factures</h2>
-                 <p className="text-slate-400 text-sm">Toutes les données extraites et sauvegardées dans votre espace sécurisé.</p>
+                 <h2 className="text-2xl font-bold text-white mb-2">Historique des analyses</h2>
+                 <p className="text-slate-400 text-sm">Vos extractions classées par date de traitement.</p>
                </div>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto shadow-2xl">
-              {loadingHistory ? (
-                <div className="p-10 text-center text-slate-500">Chargement de l'historique...</div>
-              ) : history.length === 0 ? (
-                <div className="p-10 text-center text-slate-500">Aucune facture dans votre historique pour le moment.</div>
-              ) : (
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-800/80 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
-                      <th className="p-4">Fichier</th>
-                      <th className="p-4">Fournisseur</th>
-                      <th className="p-4">N° Facture</th>
-                      <th className="p-4">Date</th>
-                      <th className="p-4">HT</th>
-                      <th className="p-4">TVA</th>
-                      <th className="p-4">TTC</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800 text-sm text-slate-300">
-                    {history.map((invoice, index) => (
-                      <tr key={index} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="p-4 truncate max-w-[150px] text-xs text-slate-500">{invoice.filename}</td>
-                        <td className="p-4 font-medium text-white">{invoice.fournisseur || '-'}</td>
-                        <td className="p-4 text-amber-100">{invoice.numero_facture || '-'}</td>
-                        <td className="p-4">{invoice.date_emission ? new Date(invoice.date_emission).toLocaleDateString() : '-'}</td>
-                        <td className="p-4">{invoice.montant_ht ? `${invoice.montant_ht} ${invoice.devise || '€'}` : '-'}</td>
-                        <td className="p-4 text-slate-500">{invoice.tva || '-'}</td>
-                        <td className="p-4 font-bold text-emerald-400">{invoice.montant_ttc ? `${invoice.montant_ttc} ${invoice.devise || '€'}` : '-'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+            {loadingHistory ? (
+              <div className="p-10 text-center text-slate-500 bg-slate-900 border border-slate-800 rounded-2xl">Chargement de vos dossiers...</div>
+            ) : Object.keys(groupedHistory).length === 0 ? (
+              <div className="p-10 text-center text-slate-500 bg-slate-900 border border-slate-800 rounded-2xl">Aucune facture dans votre historique pour le moment.</div>
+            ) : (
+              <div className="space-y-4">
+                {Object.keys(groupedHistory).map(dateKey => {
+                  const isOpen = openFolders[dateKey] !== false; // Ouvert par défaut
+                  const items = groupedHistory[dateKey];
+                  
+                  return (
+                    <div key={dateKey} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                      {/* En-tête du dossier (cliquable) */}
+                      <button 
+                        onClick={() => toggleFolder(dateKey)} 
+                        className="w-full flex items-center justify-between p-4 bg-slate-800/50 hover:bg-slate-800 transition-colors border-b border-slate-700/50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400">
+                            <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>
+                          </svg>
+                          <span className="font-bold text-white capitalize">{dateKey}</span>
+                          <span className="bg-blue-900/50 border border-blue-800/50 text-blue-300 py-0.5 px-2.5 rounded-full text-xs font-semibold">
+                            {items.length} facture{items.length > 1 ? 's' : ''}
+                          </span>
+                        </div>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+                          <path d="m6 9 6 6 6-6"/>
+                        </svg>
+                      </button>
+                      
+                      {/* Contenu du dossier (le tableau) */}
+                      {isOpen && (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-slate-900/50 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-800">
+                                <th className="p-4 w-20">Heure</th>
+                                <th className="p-4">Fichier</th>
+                                <th className="p-4">Fournisseur</th>
+                                <th className="p-4">N° Facture</th>
+                                <th className="p-4">Date Em.</th>
+                                <th className="p-4">HT</th>
+                                <th className="p-4">TVA</th>
+                                <th className="p-4">TTC</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-800/60 text-sm text-slate-300">
+                              {items.map((invoice, index) => {
+                                const time = invoice.created_at ? new Date(invoice.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '-';
+                                return (
+                                  <tr key={index} className="hover:bg-slate-800/40 transition-colors">
+                                    <td className="p-4 font-mono text-xs text-slate-500">{time}</td>
+                                    <td className="p-4 truncate max-w-[150px] text-xs text-slate-400">{invoice.filename}</td>
+                                    <td className="p-4 font-medium text-white">{invoice.fournisseur || '-'}</td>
+                                    <td className="p-4 text-amber-100">{invoice.numero_facture || '-'}</td>
+                                    <td className="p-4">{invoice.date_emission ? new Date(invoice.date_emission).toLocaleDateString() : '-'}</td>
+                                    <td className="p-4">{invoice.montant_ht ? `${invoice.montant_ht} ${invoice.devise || '€'}` : '-'}</td>
+                                    <td className="p-4 text-slate-500">{invoice.tva || '-'}</td>
+                                    <td className="p-4 font-bold text-emerald-400">{invoice.montant_ttc ? `${invoice.montant_ttc} ${invoice.devise || '€'}` : '-'}</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </main>
