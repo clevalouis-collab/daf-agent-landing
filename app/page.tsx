@@ -10,17 +10,40 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 const BACKEND_URL = "https://agent-backend-0atw.onrender.com";
 
-// --- ARTICLES DE BLOG SEO & REASSURANCE ---
+// --- ARTICLES DE BLOG & GUIDE D'ONBOARDING ---
 const BLOG_ARTICLES = [
   {
     id: 1,
+    title: "Guide d'utilisation : Comment exploiter tout le potentiel de CLFinance AI",
+    date: "7 août 2026",
+    category: "Onboarding & Tutoriel",
+    readTime: "4 min",
+    summary: "Manuel complet pour prendre en main l'agent pré-comptable, organiser vos clients et automatiser vos factures fournisseurs.",
+    content: `
+      Bienvenue sur CLFinance AI. Ce guide complet vous accompagne pas à pas pour exploiter 100% de la puissance de votre agent pré-comptable et automatiser le traitement de vos factures fournisseurs.
+
+      Étape 1 : Organiser vos dossiers clients
+      Dans l'onglet "Historique Clients", chaque entreprise ou client dispose de son propre espace étanche. Lors de votre première analyse, sélectionnez ou créez un nouveau client pour associer directement les factures au bon dossier.
+
+      Étape 2 : Le glisser-déposer intelligent (Batch Upload)
+      Rendez-vous sur l'onglet "Nouvelle Analyse IA". Vous pouvez glisser simultanément plusieurs fichiers (PDF, JPG ou PNG). Le moteur analyse chaque document en quelques secondes et extrait automatiquement : le fournisseur, le numéro de facture, la date d'émission, le montant HT, la TVA, le montant TTC, la devise et l'IBAN.
+
+      Étape 3 : Le contrôle et la validation (Human-in-the-Loop)
+      Le tableau de résultats instantanés vous permet de modifier directement n'importe quelle cellule en cas de scan flou ou d'erreur de lecture. Une alerte visuelle vous prévient si le calcul mathématique (HT + TVA = TTC) nécessite votre attention.
+
+      Étape 4 : L'exportation comptable
+      En un clic sur le bouton vert "CSV" de chaque dossier ou date, téléchargez un fichier tabulaire structuré et prêt à être injecté dans votre logiciel de comptabilité ou transmis à votre expert-comptable.
+    `
+  },
+  {
+    id: 2,
     title: "Pourquoi utiliser l'IA en pré-comptabilité a une vraie valeur ajoutée (Exemple chiffré)",
     date: "7 août 2026",
     category: "Optimisation & ROI",
     readTime: "3 min",
-    summary: "Découvrez le calcul exact des économies réalisées par une PME en automatisant le traitement de ses factures fournisseurs.",
+    summary: "Découvrez le calcul exact des économies réalisées par une entreprise en automatisant le traitement de ses factures fournisseurs.",
     content: `
-      La saisie manuelle des factures est le tue-l'amour par excellence des directions financières. Entre les erreurs de frappe, les retards de validation et le temps perdu à classer des PDF, le coût réel pour une entreprise est colossal.
+      La saisie manuelle des factures est la tâche la plus chronophage des directions financières. Entre les erreurs de frappe, les retards de validation et le temps perdu à classer des fichiers, le coût réel pour une entreprise est colossal.
       
       Le calcul de l'impact (Le ROI de l'agent IA) :
       Prenons une PME standard qui traite environ 200 factures par mois.
@@ -35,44 +58,24 @@ const BLOG_ARTICLES = [
     `
   },
   {
-    id: 2,
+    id: 3,
     title: "L'IA va-t-elle remplacer les comptables ? La vérité sur le rôle du DAF augmenté",
     date: "5 août 2026",
     category: "Réassurance & Avenir",
     readTime: "4 min",
     summary: "Entre fantasmes et réalité du terrain : pourquoi l'intelligence artificielle est le meilleur copilote du comptable et non son remplaçant.",
     content: `
-      C'est la peur numéro un lorsqu'on évoque l'intelligence artificielle dans les cabinets d'expertise comptable ou les directions financières : "Est-ce que l'IA va piquer mon job ?". La réponse claire et cash est : non.
+      C'est la peur numéro un lorsqu'on évoque l'intelligence artificielle dans les cabinets d'expertise comptable ou les directions financières : "Est-ce que l'IA va remplacer mon poste ?". La réponse claire et cash est : non.
       
-      Ce que l'IA fait bien (et qu'on déteste faire) :
-      L'IA excelle dans la répétition abrutissante : lire un PDF de travers, extraire une date, repérer un numéro de TVA intracommunautaire, aligner des chiffres dans un tableau. C'est de la machinerie pure.
+      Ce que l'IA fait parfaitement (et qu'on déteste faire) :
+      L'IA excelle dans la répétition : lire un PDF de travers, extraire une date, repérer un numéro de TVA intracommunautaire, aligner des chiffres dans un tableau. C'est de la machinerie pure et rapide.
       
       Ce que l'IA ne fera jamais (et où l'humain est irplaçable) :
       - Le jugement stratégique : Analyser pourquoi un fournisseur a augmenté ses tarifs de 15% ce trimestre.
-      - La relation client : Discuter de la santé financière de l'entreprise avec le dirigeant autour d'un café.
-      - La validation finale (Human-in-the-Loop) : Même ultra-performante, l'IA propose, mais c'est le comptable qui valide l'écriture avant l'export définitif.
+      - La relation client : Discuter de la santé financière de l'entreprise avec le dirigeant.
+      - La validation finale (Human-in-the-Loop) : Même ultra-performante, l'IA propose, mais c'est le comptable ou le DAF qui valide l'écriture avant l'export définitif.
       
       Conclusion : L'IA ne remplace pas le comptable. En revanche, le comptable qui utilise l'IA remplacera celui qui ne l'utilise pas.
-    `
-  },
-  {
-    id: 3,
-    title: "Précision et conformité : Comment l'IA moderne élimine les erreurs de TVA",
-    date: "2 août 2026",
-    category: "Performance & Sécurité",
-    readTime: "3 min",
-    summary: "Fini les hallucinations des anciennes IA. Découvrez comment les schémas de données stricts garantissent une fiabilité de 99,9% sur vos factures.",
-    content: `
-      Pendant longtemps, les outils d'OCR (reconnaissance optique de caractères) traditionnels décevaient. Ils confondaient un 8 et un 0, mélangeaient le HT et le TTC, ou rataient la TVA sur des factures mal scannées. Résultat : une vérification manuelle quasi-intégrale était requise.
-      
-      La rupture technologique des modèles actuels (comme Gemini 3.6 Flash) :
-      Les nouvelles architectures n'utilisent plus de simple OCR flou. Elles comprennent le contexte sémantique du document financier. 
-      
-      L'apport des structures strictes (Pydantic) :
-      Sur CLFinance AI, le moteur est configuré pour interdire toute approximation. Si le modèle ne trouve pas le montant TTC exact, ou si l'addition (HT + TVA) ne correspond pas au TTC, l'application alerte immédiatement l'utilisateur. 
-      
-      Sécurité et conformité :
-      Chaque donnée est isolée, sécurisée via Supabase, et rattachée à un espace client étanche. La conformité réglementaire n'est plus une option, c'est le standard de base de l'outil.
     `
   }
 ];
@@ -376,7 +379,7 @@ export default function AgentPreComptableEnterprise() {
             onClick={() => { setActiveTab('blog'); setSelectedArticle(null); }}
             className={`py-3 px-6 text-sm font-bold border-b-2 transition-colors ${activeTab === 'blog' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
           >
-            Blog & ROI
+            Blog & Guide
           </button>
         </div>
       </div>
@@ -593,16 +596,15 @@ export default function AgentPreComptableEnterprise() {
           </div>
         )}
 
-        {/* ONGLET 3 : BLOG & ARTICLES SEO (LISTE + VUE DETAIL) */}
+        {/* ONGLET 3 : BLOG & GUIDE D'UTILISATION (LISTE + VUE DÉTAIL) */}
         {activeTab === 'blog' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
             
             {!selectedArticle ? (
-              // VUE LISTE DES ARTICLES
               <div>
                 <div className="text-center mb-10">
-                  <h2 className="text-3xl font-bold text-white mb-2">Ressources & Analyses DAF</h2>
-                  <p className="text-slate-400">Tout comprendre sur l'automatisation comptable et la performance de l'IA.</p>
+                  <h2 className="text-3xl font-bold text-white mb-2">Ressources & Guide d'Utilisation</h2>
+                  <p className="text-slate-400">Tout comprendre sur l'automatisation comptable et la prise en main de l'outil.</p>
                 </div>
 
                 <div className="space-y-4">
@@ -627,7 +629,6 @@ export default function AgentPreComptableEnterprise() {
                 </div>
               </div>
             ) : (
-              // VUE ARTICLE INDIVIDUEL
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl space-y-6">
                 <button 
                   onClick={() => setSelectedArticle(null)}
