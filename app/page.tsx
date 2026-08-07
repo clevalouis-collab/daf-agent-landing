@@ -160,7 +160,7 @@ export default function AgentPreComptableEnterprise() {
               devise: data.data.devise,
               iban: data.data.iban,
               created_at: new Date().toISOString(),
-            };
+           };
            await supabase.from('invoices').insert([newInvoice]);
            fetchHistory(session.user.id);
         }
@@ -288,7 +288,7 @@ export default function AgentPreComptableEnterprise() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0a0f1c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
           </div>
           <h1 className="text-2xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 uppercase">
-            CLFinance
+            CLFinance AI
           </h1>
         </div>
         <div className="flex items-center gap-4">
@@ -324,7 +324,7 @@ export default function AgentPreComptableEnterprise() {
         {activeTab === 'analyse' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-10">
-              <h2 className="text-4xl font-bold text-white mb-4 tracking-tight">Agent Pré-Comptable</h2>
+              <h2 className="text-4xl font-bold text-white mb-4 tracking-tight">L'Agent Pré-Comptable Intelligent</h2>
               <p className="text-slate-400 max-w-xl mx-auto">Sélectionnez le client, glissez vos factures, et l'IA s'occupe du reste.</p>
             </div>
 
