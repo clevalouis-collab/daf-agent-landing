@@ -250,12 +250,27 @@ export default function AgentPreComptableEnterprise() {
     const headers = ["Fichier", "Fournisseur", "N° Facture", "Date", "HT", "TVA", "TTC", "Devise", "IBAN"];
     let csvContent = "data:text/csv;charset=utf-8," + headers.join(";") + "\n";
     items.forEach(item => {
-      csvContent += [item.filename, `"${item.fournisseur || ''}"`, `"${item.numero_facture || ''}"`, item.date_emission || '', item.montant_ht || '', item.tva || '', item.montant_ttc || '', item.devise || '', item.iban || ''].join(";") + "\n";
+      const d = item.data || item;
+      const row = [
+        item.filename || d.filename || '',
+        `"${d.fournisseur || ''}"`,
+        `"${d.numero_facture || ''}"`,
+        d.date_emission || '',
+        d.montant_ht || '',
+        d.tva || '',
+        d.montant_ttc || '',
+        d.devise || '',
+        d.iban || ''
+      ];
+      csvContent += row.join(";") + "\n";
     });
+    const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
-    link.setAttribute("href", encodeURI(csvContent));
+    link.setAttribute("href", encodedUri);
     link.setAttribute("download", `export_${label.replace(/\s+/g, '_')}.csv`);
-    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const groupHistory = () => {
@@ -369,9 +384,20 @@ export default function AgentPreComptableEnterprise() {
 
             {results.length > 0 && (
               <div className="mt-10">
-                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                  <span className={`w-3 h-3 rounded-full ${loading ? 'bg-amber-500 animate-ping' : 'bg-green-500'}`}></span> Résultats instantanés
-                </h3>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                    <span className={`w-3 h-3 rounded-full ${loading ? 'bg-amber-500 animate-ping' : 'bg-green-500'}`}></span> Résultats instantanés
+                  </h3>
+                  {!loading && results.some(r => r.data) && (
+                    <button 
+                      onClick={() => exportGroupToCSV(results.filter(r => r.data), `analyse_${activeClientFinal}`)}
+                      className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-2 shadow"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                      Exporter ces résultats en CSV
+                    </button>
+                  )}
+                </div>
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto shadow-2xl">
                   <table className="w-full text-left border-collapse">
                     <thead>
