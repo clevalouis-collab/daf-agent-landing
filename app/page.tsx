@@ -11,94 +11,93 @@ const BACKEND_URL = "https://agent-backend-0atw.onrender.com";
 const BLOG_ARTICLES = [
   {
     id: 1,
-    title: "Guide d'utilisation : Comment exploiter tout le potentiel de CLFinance AI",
+    title: "Manuel Opérationnel : Architecture, Isolation Multi-Clients et Industrialisation des Flux Fournisseurs",
     date: "7 août 2026",
-    category: "Onboarding & Tutoriel",
-    readTime: "4 min",
-    summary: "Manuel complet pour prendre en main l'agent pré-comptable, organiser vos clients et automatiser vos factures fournisseurs.",
-    content: `Bienvenue sur CLFinance AI. Ce guide complet vous accompagne pas à pas pour exploiter 100% de la puissance de votre agent pré-comptable et automatiser le traitement de vos factures fournisseurs.\n\nÉtape 1 : Organiser vos dossiers clients\nDans l'onglet "Historique Clients", chaque entreprise ou client dispose de son propre espace étanche. Lors de votre première analyse, sélectionnez ou créez un nouveau client pour associer directement les factures au bon dossier.\n\nÉtape 2 : Le glisser-déposer intelligent (Batch Upload)\nRendez-vous sur l'onglet "Nouvelle Analyse IA". Vous pouvez glisser simultanément plusieurs fichiers (PDF, JPG ou PNG). Le moteur analyse chaque document en quelques secondes et extrait automatiquement : le fournisseur, le numéro de facture, la date d'émission, le montant HT, la TVA, le montant TTC, la devise et l'IBAN.\n\nÉtape 3 : Le contrôle et la validation (Human-in-the-Loop)\nLe tableau de résultats instantanés vous permet de modifier directement n'importe quelle cellule en cas de scan flou ou d'erreur de lecture. Une alerte visuelle vous prévient si le calcul mathématique (HT + TVA = TTC) nécessite votre attention.\n\nÉtape 4 : L'exportation comptable\nEn un clic sur le bouton vert "CSV" de chaque dossier ou date, téléchargez un fichier tabulaire structuré et prêt à être injecté dans votre logiciel de comptabilité ou transmis à votre expert-comptable.`
+    category: "Architecture & Onboarding Enterprise",
+    readTime: "7 min",
+    summary: "Guide d'implémentation stratégique pour les Directions Administratives et Financières souhaitant industrialiser leur chaîne de traitement des factures d'achats.",
+    content: `L'industrialisation des processus administratifs et financiers (AP Automation) ne se résume pas à l'adoption d'un simple outil de numérisation. Elle exige une rigueur architecturale irréprochable garantissant l'étanchéité des données et la fluidité des flux opérationnels.\n\n1. Isolation et Structuration des Portefeuilles Clients\nDans le cadre de structures multi-entités ou de cabinets d'expertise comptable gérant des dizaines de dossiers distincts, l'étanchéité des données est un impératif absolu. L'onglet "Historique Clients" de CLFinance AI segmente chaque entité de manière stricte grâce à une liaison relationnelle sécurisée par l'identifiant utilisateur unique (UUID) et le libellé de l'entité. Chaque flux documentaire est ainsi cloisonné, éliminant tout risque de croisement de données inter-entreprises.\n\n2. Le Traitement en Batch (Batch Upload) et l'Extraction Sémantique\nLa phase d'ingestion s'appuie sur un système de glisser-déposer massif (PDF, JPG, PNG). Contrairement aux solutions d'OCR traditionnelles qui se contentent d'une reconnaissance optique linéaire, notre agent IA procède à une analyse contextuelle globale. Les schémas de données stricts extraient instantanément la matrice complète : entité fournisseur, numéro de facture, date d'émission, ventilation HT/TVA/TTC, devise normalisée et coordonnées bancaires (IBAN).\n\n3. Le paradigme du "Human-in-the-Loop"\nEn finance d'entreprise, la certitude statistique ne suffit pas : la conformité fiscale exige une précision de 100 %. L'interface de résultats instantanés intègre un mécanisme de correction dynamique. Chaque cellule est éditable en temps réel. De plus, un algorithme de cohérence mathématique intégré vérifie en permanence l'adéquation de la formule (HT + TVA = TTC), signalant visuellement toute anomalie avant l'intégration définitive.\n\n4. Restitution et Clôture Comptable\nL'étape finale de la chaîne de valeur réside dans l'export tabulaire structuré. En un clic, l'exportation au format CSV formate les écritures selon les standards normalisés du marché, facilitant l'injection directe dans les progiciels de gestion intégrée (ERP) ou les logiciels comptables de production.`
   },
   {
     id: 2,
-    title: "Pourquoi utiliser l'IA en pré-comptabilité a une vraie valeur ajoutée (Exemple chiffré)",
+    title: "Analyse du Coût Total de Possession (TCO) : Le ROI Mathématique de l'Automatisation des Achats",
     date: "7 août 2026",
-    category: "Optimisation & ROI",
-    readTime: "3 min",
-    summary: "Découvrez le calcul exact des économies réalisées par une entreprise en automatisant le traitement de ses factures fournisseurs.",
-    content: `La saisie manuelle des factures est la tâche la plus chronophage des directions financières. Entre les erreurs de frappe, les retards de validation et le temps perdu à classer des fichiers, le coût réel pour une entreprise est colossal.\n\nLe calcul de l'impact (Le ROI de l'agent IA) :\nPrenons une PME standard qui traite environ 200 factures par mois.\n- En mode manuel (Humain) : 5 minutes par facture (ouverture, lecture, saisie, vérification TVA). Soit 16,6 heures de travail par mois. Coût estimé : 498 € / mois (base 30€/h chargée).\n- Avec CLFinance AI : 3 secondes d'analyse IA + 30 secondes de validation par l'humain. Soit moins de 2 heures par mois. Coût réel : 60 € / mois.\n\nLa vraie valeur ajoutée :\n1. Économie financière directe : Plus de 430 € économisés chaque mois uniquement sur la saisie (plus de 5 000 € par an).\n2. Zéro erreur humaine : Les schémas d'extraction stricts éliminent les confusions de chiffres et sécurisent la TVA.\n3. Focus sur le conseil : Le DAF ou le comptable quitte les tâches ingrates pour se consacrer à l'analyse de la marge et de la trésorerie.`
+    category: "Corporate Finance & ROI",
+    readTime: "6 min",
+    summary: "Démonstration financière chiffrée de l'impact direct de l'IA sur la réduction des coûts opérationnels et l'optimisation du BFR.",
+    content: `Le traitement des factures fournisseurs (Accounts Payable) représente l'un des postes les plus sous-estimés en termes de coûts cachés au sein des PME et ETI. L'accumulation des tâches de saisie manuelle engendre un coût de revient unitaire par facture exorbitant lorsque l'on intègre le temps homme, les taux horaires chargés et les coûts de correction des erreurs de rapprochement.\n\nModélisation financière pour un volume de 500 factures mensuelles :\n\n- Scénario Traditionnel (Saisie Manuelle Humaine) :\nTemps moyen de traitement par facture (réception, ouverture, saisie des lignes, contrôle de TVA, rapprochement et classement) : 6 minutes.\nVolume horaire mensuel consacré : 50 heures.\nCoût salarial chargé (base de 35 € / heure) : 1 750 € par mois, soit 21 000 € par an uniquement alloués à la ressaisie administrative.\n\n- Scénario Augmenté (CLFinance AI) :\nTemps de traitement moyen par document (traitement IA instantané + validation par exception de l'analyste) : 35 secondes.\nVolume horaire mensuel consacré : Moins de 5 heures.\nCoût opérationnel global de la solution : Infrastructure mutualisée et support.\n\nGain net et relèvement de la marge opérationnelle :\nAu-delà de l'économie financière brute dépassant les 18 000 € annuels, le véritable gain se situe sur le plan du Besoin en Fonds de Roulement (BFR). L'accélération du cycle de validation des factures fournisseurs permet d'optimiser les conditions d'escompte, d'éviter les pénalités de retard et d'obtenir une visibilité parfaite sur les flux de trésorerie à court terme (cash-flow forecasting).`
   },
   {
     id: 3,
-    title: "L'IA va-t-elle remplacer les comptables ? La vérité sur le rôle du DAF augmenté",
+    title: "Le Mythe de la Disparition des Métiers du Chiffre : Avénement et Puissance du DAF Augmenté",
     date: "5 août 2026",
-    category: "Réassurance & Avenir",
-    readTime: "4 min",
-    summary: "Entre fantasmes et réalité du terrain : pourquoi l'intelligence artificielle est le meilleur copilote du comptable et non son remplaçant.",
-    content: `C'est la peur numéro un lorsqu'on évoque l'intelligence artificielle dans les cabinets d'expertise comptable ou les directions financières : "Est-ce que l'IA va remplacer mon poste ?". La réponse claire et cash est : non.\n\nCe que l'IA fait parfaitement (et qu'on déteste faire) :\nL'IA excelle dans la répétition : lire un PDF de travers, extraire une date, repérer un numéro de TVA intracommunautaire, aligner des chiffres dans un tableau. C'est de la machinerie pure et rapide.\n\nCe que l'IA ne fera jamais (et où l'humain est irplaçable) :\n- Le jugement stratégique : Analyser pourquoi un fournisseur a augmenté ses tarifs de 15% ce trimestre.\n- La relation client : Discuter de la santé financière de l'entreprise avec le dirigeant.\n- La validation finale (Human-in-the-Loop) : Même ultra-performante, l'IA propose, mais c'est le comptable ou le DAF qui valide l'écriture avant l'export définitif.\n\nConclusion : L'IA ne remplace pas le comptable. En revanche, le comptable qui utilise l'IA remplacera celui qui ne l'utilise pas.`
+    category: "Stratégie Managériale & Avenir",
+    readTime: "6 min",
+    summary: "Pourquoi l'intelligence artificielle générative ne remplace pas le jugement financier humain, mais le propulse vers des fonctions à haute valeur ajoutée stratégique.",
+    content: `L'introduction de l'intelligence artificielle dans les directions financières suscite parfois des résistances culturelles légitimes, ancrées dans la crainte d'une obsolescence des compétences traditionnelles. Pourtant, une analyse lucide de la chaîne de valeur montre que l'IA libère le professionnel du chiffre des entraves de la corvée opérationnelle.\n\nLa dichotomie entre la machine et l'analyste :\n- Ce que l'IA accomplit avec excellence : L'extraction syntaxique, la normalisation des formats hétérogènes, la vérification arithmétique et la mise en conformité formelle des pièces justificatives. C'est de la puissance brute de calcul appliquée au traitement documentaire.\n\n- Ce qui demeure strictement exclusif à l'humain (Le Haut Niveau) :\n1. L'interprétation contextuelle des variations de marges ou des dérives budgétaires inexpliquées.\n2. La négociation active avec les créanciers et les directions opérationnelles.\n3. La modélisation prospective des scénarios de croissance externe ou de restructuration financière.\n\nLe Directeur Administratif et Financier (DAF) de demain, épaoulé par des agents intelligents, abandonne définitivement la posture de contrôleur de saisie pour endosser pleinement son rôle de co-pilote stratégique de la direction générale. L'outil ne se substitue pas au cerveau humain : il en multiplie la portée décisionnelle.`
   },
   {
     id: 4,
-    title: "Précision et conformité : Comment l'IA moderne élimine les erreurs de TVA",
+    title: "Au-delà de l'OCR Traditionnel : Fiabilité Sémantique et Validation par Schémas Stricts (Pydantic / LLM)",
     date: "2 août 2026",
-    category: "Performance & Sécurité",
-    readTime: "3 min",
-    summary: "Fini les hallucinations des anciennes IA. Découvrez comment les schémas de données stricts garantissent une fiabilité de 99,9% sur vos factures.",
-    content: `Pendant longtemps, les outils d'OCR traditionnels décevaient. Ils confondaient un 8 et un 0, mélangeaient le HT et le TTC, ou rataient la TVA sur des factures mal scannées. Résultat : une vérification manuelle quasi-intégrale était requise.\n\nLa rupture technologique des modèles actuels :\nLes nouvelles architectures comprennent le contexte sémantique du document financier grâce à des modèles de pointe comme Gemini Flash.\n\nL'apport des structures strictes :\nSur CLFinance AI, le moteur est configuré pour interdire toute approximation. Si l'addition (HT + TVA) ne correspond pas au TTC, l'application alerte immédiatement l'utilisateur pour garantir une conformité fiscale irréprochable.`
+    category: "Ingénierie & Conformité Fiscale",
+    readTime: "5 min",
+    summary: "Détail technique des architectures neuronales modernes garantissant une précision de lecture absolue sur les pièces fiscales complexes.",
+    content: `Pendant deux décennies, les directions informatiques des entreprises ont souffert des limites inhérentes aux moteurs d'OCR (Reconnaissance Optique de Caractères) basés sur des règles heuristiques rigides. Un changement de police typographique, un filigrane en arrière-plan ou un document légèrement inclinés suffisaient à corrompre l'extraction des données.\n\nL'avènement des modèles multimodaux et de la sémantique contextuelle :\nLes architectures d'extraction actuelles ne se focalisent plus sur la position géométrique des pixels, mais sur la compréhension logique du document. Le système comprend qu'un montant situé en bas à droite précédé de la mention "Total à payer" représente l'assiette TTC, indépendamment de sa disposition graphique.\n\nL'importance des schémas de validation stricts :\nPour éliminer tout risque d'hallucination inhérent aux grands modèles de langage, CLFinance AI couple son moteur d'intelligence artificielle à des validateurs de schémas stricts. Les types de données, les formats de dates ISO et les contraintes mathématiques sont vérifiés en amont de l'écriture en base de données. Si une incohérence est détectée, le système bloque la validation aveugle et requiert l'arbitrage de l'analyste, garantissant ainsi une piste d'audit irréprochable en cas de contrôle fiscal.`
   },
   {
     id: 5,
-    title: "Le cauchemar des factures fournisseurs en vrac : comment y mettre fin définitivement",
+    title: "L'Unification des Canaux d'Acquisition : Comment Résoudre la Fragmentation Documentaire des Achats",
     date: "30 juillet 2026",
-    category: "Gestion Opérationnelle",
-    readTime: "4 min",
-    summary: "Entre les reçus froissés en JPEG, les PDF reçus sur des bruits de couloir et les notes de frais éparpillées, voici la méthode pour centraliser vos achats.",
-    content: `Le traitement des factures fournisseurs est souvent le parent pauvre de la numérisation des entreprises. Alors que les factures clients sont lissées, les achats arrivent de partout : boîtes mail personnelles, portails fournisseurs, reçus de taxi en photo.\n\nCentraliser sans effort :\nGrâce à l'interface multi-clients de CLFinance AI, vous glissez tout au même endroit, quel que soit le format (PDF, PNG, JPG). L'intelligence artificielle normalise instantanément le bazar organisationnel en un flux de données propre, trié par client et par date.`
+    category: "Organisation & Processus AP",
+    readTime: "5 min",
+    summary: "Gestion unifiée des flux hétérogènes (PDF reçus par e-mail, portails fournisseurs, notes de frais mobiles et reçus papier numérisés).",
+    content: `L'une des complexités majeures de la gestion des comptes fournisseurs réside dans la multiplicité des points d'entrée des factures. Entre les abonnements SaaS prélevés par carte bancaire dont la facture arrive dans la boîte mail d'un collaborateur, les factures EDI des grands comptes et les tickets de caisse papiers amassés en déplacement, la dispersion documentaire est maximale.\n\nLa centralisation comme prérequis à l'intelligence :\nPour qu'une automatisation soit performante, elle doit centraliser les flux sans imposer de contraintes excessives aux émetteurs internes. En permettant l'ingestion universelle de tout type de format (documents numériques natifs ou scans de basse qualité), CLFinance AI agit comme un hub centralisateur universel.\n\nL'organisation par dossiers dynamiques et l'accès instantané aux historiques permettent aux équipes financières d'auditer l'état d'un règlement ou d'extraire un justificatif en moins de dix secondes, transformant un archiveur passif en une base de données active et interrogeable.`
   },
   {
     id: 6,
-    title: "Sécurité et confidentialité des données financières : ce que garantit une architecture moderne",
+    title: "Sécurité des Données Financières et Conformité RGPD : Le Standard Enterprise de l'Infrastructure Cloud",
     date: "28 juillet 2026",
-    category: "Sécurité & RGPD",
-    readTime: "5 min",
-    summary: "IBAN, montants, noms de fournisseurs : la protection des données sensibles est la pierre angulaire de notre infrastructure cloud.",
-    content: `Lorsqu'on traite des données comptables et des IBAN bancaires, la sécurité n'est pas négociable. Chaque entreprise est en droit de exiger une étanchéité parfaite de ses flux.\n\nIsolation et chiffrement :\nGrâce à une authentification rigoureuse et une base de données relationnelle sécurisée (Supabase), chaque utilisateur ne voit que ses propres données et celles des clients qui lui sont rattachés. Les flux d'analyse transite de manière chiffrée, garantissant un respect total des normes de confidentialité professionnelles.`
+    category: "Sécurité & Gouvernance SI",
+    readTime: "6 min",
+    summary: "Analyse des protocoles de chiffrement, de la ségrégation des bases de données et des garanties de confidentialité pour les données sensibles.",
+    content: `Le traitement externalisé de données financières hautement sensibles — telles que les plans de comptes, les volumes de CA, les identités des fournisseurs et les coordonnées bancaires (IBAN) — impose le respect des exigences de sécurité les plus strictes du marché.\n\nArchitecture de confiance et cloisonnement des données :\nL'infrastructure repose sur un triptyque sécuritaire de premier plan :\n1. Chiffrement de bout en bout des flux de données en transit (HTTPS / TLS 1.3) et au repos (Chiffrement AES-256 des bases de données relationnelles).\n2. Isolation rigoureuse des sessions par authentification forte et jetons sécurisés, empêchant toute fuite d'information d'un portefeuille client à un autre.\n3. Indépendance et état "stateless" des microservices de traitement, garantissant qu'aucune donnée client persistante ne transite durablement hors des environnements sécurisés.\n\nCette rigueur technique assure aux DAF et aux RSSI (Responsables de la Sécurité des Systèmes d'Information) une sérénité totale lors de l'audit de conformité de l'outil au sein de leur écosystème d'entreprise.`
   },
   {
     id: 7,
-    title: "Comment automatiser le rapprochement des factures d'achats pour gagner 15h par mois",
+    title: "Accélération des Cycles de Clôture Mensuelle : Du Reporting Rétroactif au Pilotage Prédictif",
     date: "24 juillet 2026",
-    category: "Productivité",
-    readTime: "3 min",
-    summary: "Passez d'une saisie ligne par ligne à un contrôle global. Guide pratique pour alléger la charge de travail de vos équipes administratives.",
-    content: `Quinze heures par mois, c'est le volume horaire moyen gaspillé par une équipe administrative de taille modeste à recopier des numéros de factures et des montants dans des tableurs.\n\nLe basculement vers l'automatisation :\nEn déléguant la lecture brute à l'agent IA, votre équipe passe d'un rôle de "saisisseur de données" à un rôle de "contrôleur qualité". Le gain de temps se traduit immédiatement par une baisse du stress de fin de mois et une accélération de la clôture comptable.`
+    category: "Performance Financière",
+    readTime: "5 min",
+    summary: "Comment l'élimination des goulots d'étranglement de saisie permet de réduire le délai de clôture des comptes (Soft Close) de plusieurs jours.",
+    content: `Le rituel de la clôture comptable mensuelle est traditionnellement une période de forte tension pour les équipes financières, caractérisée par des heures supplémentaires consacrées à la recherche de factures égarées et à la régularisation d'écritures de charges à payer (FNP).\n\nL'effet levier de l'instantanéité :\nEn automatisant l'extraction des données dès leur réception au fil de l'eau, le volume de factures en attente de traitement en fin de mois chute drastiquement. Les écritures sont qualifiées, ventilées et enregistrées au jour le jour.\n\nConséquence directe sur le pilotage :\nLa direction financière n'attend plus le 15 du mois suivant pour avoir une vision consolidée de ses charges d'exploitation. La disponibilité en temps réel des données d'achats structurées permet d'affiner les tableaux de bord de gestion, d'anticiper les dérives de coûts et d'ajuster la trajectoire budgétaire en cours de période avec une réactivité inédite.`
   },
   {
     id: 8,
-    title: "Cabinets d'expertise comptable : comment scaler votre portefeuille clients sans recruter",
+    title: "Économie d'Échelle en Cabinet d'Expertise Comptable : Scalabilité du Portefeuille sans Hausse de Masse Salariale",
     date: "20 juillet 2026",
-    category: "Stratégie Cabinet",
-    readTime: "4 min",
-    summary: "La pénurie de talents dans les métiers du chiffre pousse les cabinets à automatiser les tâches répétitives pour absorber plus de mandats.",
-    common: "Cabinet",
-    content: `Le modèle traditionnel des cabinets d'expertise comptable repose sur une équation simple : plus vous avez de clients, plus vous devez embaucher de collaborateurs pour la saisie.\n\nBriser l'équation linéaire :\nEn équipant vos collaborateurs d'un outil de pré-comptabilité instantané par IA, la productivité par collaborateur est multipliée par trois. Vous pouvez ainsi accepter de nouveaux clients TPE/PME sans alourdir votre masse salariale ni rogner sur vos marges.`
+    category: "Stratégie pour Cabinets",
+    readTime: "6 min",
+    summary: "Étude stratégique sur la mutation du modèle économique des cabinets d'expertise comptable face aux nouveaux standards technologiques.",
+    content: `Le marché de l'expertise comptable fait face à une double contrainte structurelle : une pénurie persistante de collaborateurs qualifiés sur le marché du travail et une pression tarifaire constante exercée par les clients finaux sur les prestations de tenue de comptes.\n\nSortir du piège de la croissance linéaire :\nHistoriquement, l'augmentation du chiffre d'affaires d'un cabinet était corrélée de manière linéaire à l'augmentation du nombre d'heures de saisie facturées, nécessitant des recrutements continus.\n\nL'intégration d'un agent pré-comptable spécialisé comme CLFinance AI permet de casser cette corrélation. En confiant l'ingestion et la structuration des factures d'achats à l'intelligence artificielle, un collaborateur junior peut superviser un portefeuille de dossiers étendu de 40% à 50% supplémentaires, en se concentrant exclusivement sur la révision des comptes, l'optimisation fiscale et le conseil à haute valeur ajoutée auprès des chefs d'entreprise.`
   },
   {
     id: 9,
-    title: "La fin du fichier Excel manuel : l'ère de l'export CSV instantané et structuré",
+    title: "La Mort Programmée du Saisie-Recherche : Vers l'Interopérabilité Native des Systèmes Comptables",
     date: "15 juillet 2026",
-    category: "Outils & Intégration",
-    readTime: "3 min",
-    summary: "Pourquoi les exports tabulaires sur-mesure facilitent la transition vers les logiciels comptables de nouvelle génération.",
-    content: `Le tableur Excel reste l'outil universel de la comptabilité, mais le remplir à la main est une hérésie moderne. \n\nL'export ciblé par dossier :\nAvec la génération de CSV par lot ou par date proposée par CLFinance AI, vous obtenez en un clic un fichier parfaitement formaté (séparateurs, colonnes HT, TVA, TTC, IBAN) prêt à être injecté partout. Fini les erreurs de copier-coller de cellules.`
+    category: "Technologies & Normes",
+    readTime: "5 min",
+    summary: "Analyse prospective sur l'évolution des formats d'échanges de données financières et la disparition progressive des ressaisies manuelles.",
+    content: `L'histoire de la comptabilité moderne est jalonnée de transitions technologiques majeures : du grand livre papier aux logiciels de comptabilité sur poste local, puis vers le mode SaaS collaboratif. Aujourd'hui, l'étape ultime consiste à éliminer la barrière de saisie par l'interopérabilité sémantique.\n\nDu CSV universel aux API natives :\nAlors que l'export tabulaire structuré (CSV) constitue l'étalon-or actuel pour injecter proprement les données dans n'importe quel logiciel du marché (Pennylane, Dext, Sage, Cegid), l'horizon technologique s'oriente vers des synchronisations par API bidirectionnelles en temps réel.\n\nCette fluidité d'échange garantit que la donnée extraite par l'intelligence artificielle se retrouve instantanément catégorisée dans le plan de comptes analytique et général de l'entreprise, sans qu'aucune intervention humaine intermédiaire ne vienne ralentir la chaîne de traitement.`
   },
   {
     id: 10,
-    title: "L'avenir de la DAF augmentée à l'horizon 2030 : de la saisie à la stratégie financière",
+    title: "Prospective 2030 : Le Directeur Financier en Mode Agentique et l'Autonomie Budgétaire Intelligente",
     date: "10 juillet 2026",
-    category: "Vision & Avenir",
-    readTime: "5 min",
-    summary: "Analyse prospective sur l'évolution du métier de Directeur Administratif et Financier à l'ère de l'intelligence artificielle générale.",
-    content: `À mesure que les tâches administratives et la saisie des factures fournisseurs s'automatisent totalement, le rôle du DAF subit une métamorphose profonde.\n\nDu rétroviseur au pare-brise :\nLe DAF de demain ne passe plus son temps à regarder le passé pour justifier des chiffres de l'an dernier. Déchargé de la charge opérationnelle, il devient le véritable co-pilote stratégique du CEO, focalisé sur l'optimisation du cash-flow, la gestion des risques et la croissance externe.`
+    category: "Prospective & Leadership",
+    readTime: "6 min",
+    summary: "Vision à long terme sur l'automatisation intégrale de la chaîne financière et l'émergence des organisations pilotées par des agents autonomes.",
+    content: `À l'horizon 2030, la fonction finance aura achevé sa mue numérique. Les logiciels ne seront plus de simples répertoires passifs où l'on archive des pièces, mais des écosystèmes d'agents autonomes capables d'interagir entre eux pour orchestrer la vie financière de l'entreprise.\n\nVers l'autonomie des processus:\nLes factures ne seront plus seulement lues et classées : les agents négocieront automatiquement les délais de paiement en fonction de la trésorerie prévisionnelle, lanceront des alertes sur les anomalies tarifaires par rapport aux contrats cadres négociés, et généreront les liasses fiscales de pré-clôture de manière autonome.\n\nPour le dirigeant et le DAF, cette autonomie opérationnelle marque le passage définitif d'un management par la contrainte administrative à un management par la vision stratégique et la maîtrise souveraine de la croissance.`
   }
 ];
 
@@ -497,8 +496,8 @@ export default function AgentPreComptableEnterprise() {
             {!selectedArticle ? (
               <div>
                 <div className="text-center mb-10">
-                  <h2 className="text-3xl font-bold text-white mb-2">Ressources & Guide d'Utilisation</h2>
-                  <p className="text-slate-400">Tout comprendre sur l'automatisation comptable et la prise en main de l'outil.</p>
+                  <h2 className="text-3xl font-bold text-white mb-2">Ressources & Guides Stratégiques DAF</h2>
+                  <p className="text-slate-400">Analyses prospectives, architectures et notes d'optimisation financière.</p>
                 </div>
                 <div className="space-y-4">
                   {BLOG_ARTICLES.map((article) => (
@@ -515,7 +514,7 @@ export default function AgentPreComptableEnterprise() {
               </div>
             ) : (
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl space-y-6">
-                <button onClick={() => setSelectedArticle(null)} className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 mb-4">← Retour aux articles</button>
+                <button onClick={() => setSelectedArticle(null)} className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 mb-4">← Retour aux analyses</button>
                 <div className="flex items-center gap-3 text-xs text-amber-400 font-semibold uppercase tracking-wider">
                   <span>{selectedArticle.category}</span><span>•</span><span>{selectedArticle.date}</span>
                 </div>
