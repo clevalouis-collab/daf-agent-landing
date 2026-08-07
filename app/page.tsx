@@ -11,7 +11,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const BACKEND_URL = "https://agent-backend-0atw.onrender.com";
 
 export default function AgentPreComptableEnterprise() {
-  const [activeTab, setActiveTab] = useState<'analyse' | 'historique'>('analyse');
+  const [activeTab, setActiveTab] = useState<'analyse' | 'historique' | 'blog'>('analyse');
   const [selectedClient, setSelectedClient] = useState("");
   const [customClient, setCustomClient] = useState("");
   const [filterClient, setFilterClient] = useState("TOUS");
@@ -61,7 +61,6 @@ export default function AgentPreComptableEnterprise() {
     
     if (data) {
       setHistory(data);
-      // Sélectionner le premier client par défaut si la liste n'est pas vide
       const uniqueClients = Array.from(new Set(data.map(i => i.client_name).filter(Boolean)));
       if (uniqueClients.length > 0 && !selectedClient) {
         setSelectedClient(uniqueClients[0] as string);
@@ -145,7 +144,6 @@ export default function AgentPreComptableEnterprise() {
           return updated;
         });
 
-        // Sauvegarde en base avec le nom du client
         if (response.ok && data.data && session?.user?.id) {
            const newInvoice = {
               user_id: session.user.id,
@@ -224,8 +222,6 @@ export default function AgentPreComptableEnterprise() {
   // --- GROUPEMENT ET FILTRAGE DES DONNÉES HISTORIQUES ---
   const groupHistory = () => {
     const clientsMap: Record<string, Record<string, any[]>> = {};
-    
-    // Filtrer selon le menu déroulant de l'historique
     const filteredHistory = filterClient === "TOUS" 
       ? history 
       : history.filter(item => item.client_name === filterClient);
@@ -315,6 +311,12 @@ export default function AgentPreComptableEnterprise() {
             Historique Clients
             <span className="bg-slate-800 text-slate-300 py-0.5 px-2 rounded-full text-xs">{history.length}</span>
           </button>
+          <button 
+            onClick={() => setActiveTab('blog')}
+            className={`py-3 px-6 text-sm font-bold border-b-2 transition-colors ${activeTab === 'blog' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
+          >
+            Blog & ROI
+          </button>
         </div>
       </div>
 
@@ -330,7 +332,6 @@ export default function AgentPreComptableEnterprise() {
 
             <div className="w-full bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl p-8 shadow-2xl">
               
-              {/* SELECTEUR DE CLIENT (Menu déroulant + Option Nouveau) */}
               <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-300 mb-2">Client concerné :</label>
@@ -347,7 +348,6 @@ export default function AgentPreComptableEnterprise() {
                   </select>
                 </div>
 
-                {/* Si "AUTRE" est sélectionné, on affiche un champ texte */}
                 {(selectedClient === "AUTRE" || existingClients.length === 0) && (
                   <div>
                     <label className="block text-sm font-semibold text-slate-300 mb-2">Nom du nouveau client :</label>
@@ -362,7 +362,6 @@ export default function AgentPreComptableEnterprise() {
                 )}
               </div>
 
-              {/* ZONE DE DROP */}
               <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-slate-700 rounded-xl hover:border-blue-500 hover:bg-slate-800/50 transition-all cursor-pointer mb-6 group">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
                   <svg className="w-10 h-10 mb-2 text-blue-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
@@ -430,7 +429,6 @@ export default function AgentPreComptableEnterprise() {
                 <p className="text-slate-400 text-sm">Filtrez par client pour afficher uniquement ses documents.</p>
               </div>
 
-              {/* FILTRE PAR CLIENT */}
               <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 p-2 rounded-xl">
                 <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider pl-2">Filtrer :</span>
                 <select 
@@ -531,6 +529,66 @@ export default function AgentPreComptableEnterprise() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ONGLET 3 : BLOG & ARTICLES SEO */}
+        {activeTab === 'blog' && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-bold text-white mb-2">Ressources & Analyses DAF</h2>
+              <p className="text-slate-400">Découvrez l'impact réel de l'intelligence artificielle sur l'automatisation comptable.</p>
+            </div>
+
+            <article className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl space-y-6">
+              <div className="flex items-center gap-3 text-xs text-amber-400 font-semibold uppercase tracking-wider">
+                <span>Optimisation Financière</span>
+                <span>•</span>
+                <span>Temps de lecture : 3 min</span>
+              </div>
+
+              <h3 className="text-2xl font-bold text-white">
+                Pourquoi utiliser l'IA en pré-comptabilité a une vraie valeur ajoutée (Exemple chiffré)
+              </h3>
+
+              <div className="text-slate-300 space-y-4 leading-relaxed">
+                <p>
+                  La saisie manuelle des factures est le tue-l'amour par excellence des directions financières. Entre les erreurs de frappe, les retards de validation et le temps perdu à classer des PDF, le coût réel pour une entreprise est colossal.
+                </p>
+
+                <h4 className="text-lg font-bold text-amber-300 pt-2">Le Calcul de l'impact (Le ROI de l'agent IA)</h4>
+                <p>
+                  Prenons une PME standard qui traite environ <strong>200 factures par mois</strong>.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+                  <div className="bg-slate-950 p-5 rounded-xl border border-red-900/30">
+                    <h5 className="font-bold text-red-400 mb-2">🔴 En mode manuel (Humain)</h5>
+                    <ul className="text-xs space-y-2 text-slate-400">
+                      <li>• 5 minutes par facture (ouverture, lecture, saisie, vérification TVA).</li>
+                      <li>• <strong>16,6 heures</strong> de travail par mois (1000 minutes).</li>
+                      <li>• Coût : <strong>498 € / mois</strong> (base 30€/h chargée).</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-slate-950 p-5 rounded-xl border border-emerald-900/30">
+                    <h5 className="font-bold text-emerald-400 mb-2">🟢 Avec CLFinance AI</h5>
+                    <ul className="text-xs space-y-2 text-slate-400">
+                      <li>• 3 secondes d'analyse IA + 30 secondes de validation.</li>
+                      <li>• <strong>Moins de 2 heures</strong> de travail par mois.</li>
+                      <li>• Coût réel : <strong>60 € / mois</strong>.</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <h4 className="text-lg font-bold text-amber-300 pt-2">La vraie valeur ajoutée pour votre cabinet ou PME</h4>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li><strong>Économie financière directe :</strong> Plus de 430 € économisés chaque mois uniquement sur le traitement des factures (soit plus de 5 000 € par an).</li>
+                  <li><strong>Zéro erreur humaine :</strong> Les schémas d'extraction stricts éliminent les confusions de chiffres et sécurisent la TVA.</li>
+                  <li><strong>Recentrage sur le conseil :</strong> Le DAF ou le comptable quitte les tâches ingrates pour se consacrer à l'analyse de la marge et de la trésorerie.</li>
+                </ul>
+              </div>
+            </article>
           </div>
         )}
       </main>
