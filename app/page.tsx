@@ -10,8 +10,77 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 const BACKEND_URL = "https://agent-backend-0atw.onrender.com";
 
+// --- ARTICLES DE BLOG SEO & REASSURANCE ---
+const BLOG_ARTICLES = [
+  {
+    id: 1,
+    title: "Pourquoi utiliser l'IA en pré-comptabilité a une vraie valeur ajoutée (Exemple chiffré)",
+    date: "7 août 2026",
+    category: "Optimisation & ROI",
+    readTime: "3 min",
+    summary: "Découvrez le calcul exact des économies réalisées par une PME en automatisant le traitement de ses factures fournisseurs.",
+    content: `
+      La saisie manuelle des factures est le tue-l'amour par excellence des directions financières. Entre les erreurs de frappe, les retards de validation et le temps perdu à classer des PDF, le coût réel pour une entreprise est colossal.
+      
+      Le calcul de l'impact (Le ROI de l'agent IA) :
+      Prenons une PME standard qui traite environ 200 factures par mois.
+      
+      - En mode manuel (Humain) : 5 minutes par facture (ouverture, lecture, saisie, vérification TVA). Soit 16,6 heures de travail par mois. Coût estimé : 498 € / mois (base 30€/h chargée).
+      - Avec CLFinance AI : 3 secondes d'analyse IA + 30 secondes de validation par l'humain. Soit moins de 2 heures par mois. Coût réel : 60 € / mois.
+      
+      La vraie valeur ajoutée :
+      1. Économie financière directe : Plus de 430 € économisés chaque mois uniquement sur la saisie (plus de 5 000 € par an).
+      2. Zéro erreur humaine : Les schémas d'extraction stricts éliminent les confusions de chiffres et sécurisent la TVA.
+      3. Focus sur le conseil : Le DAF ou le comptable quitte les tâches ingrates pour se consacrer à l'analyse de la marge et de la trésorerie.
+    `
+  },
+  {
+    id: 2,
+    title: "L'IA va-t-elle remplacer les comptables ? La vérité sur le rôle du DAF augmenté",
+    date: "5 août 2026",
+    category: "Réassurance & Avenir",
+    readTime: "4 min",
+    summary: "Entre fantasmes et réalité du terrain : pourquoi l'intelligence artificielle est le meilleur copilote du comptable et non son remplaçant.",
+    content: `
+      C'est la peur numéro un lorsqu'on évoque l'intelligence artificielle dans les cabinets d'expertise comptable ou les directions financières : "Est-ce que l'IA va piquer mon job ?". La réponse claire et cash est : non.
+      
+      Ce que l'IA fait bien (et qu'on déteste faire) :
+      L'IA excelle dans la répétition abrutissante : lire un PDF de travers, extraire une date, repérer un numéro de TVA intracommunautaire, aligner des chiffres dans un tableau. C'est de la machinerie pure.
+      
+      Ce que l'IA ne fera jamais (et où l'humain est irplaçable) :
+      - Le jugement stratégique : Analyser pourquoi un fournisseur a augmenté ses tarifs de 15% ce trimestre.
+      - La relation client : Discuter de la santé financière de l'entreprise avec le dirigeant autour d'un café.
+      - La validation finale (Human-in-the-Loop) : Même ultra-performante, l'IA propose, mais c'est le comptable qui valide l'écriture avant l'export définitif.
+      
+      Conclusion : L'IA ne remplace pas le comptable. En revanche, le comptable qui utilise l'IA remplacera celui qui ne l'utilise pas.
+    `
+  },
+  {
+    id: 3,
+    title: "Précision et conformité : Comment l'IA moderne élimine les erreurs de TVA",
+    date: "2 août 2026",
+    category: "Performance & Sécurité",
+    readTime: "3 min",
+    summary: "Fini les hallucinations des anciennes IA. Découvrez comment les schémas de données stricts garantissent une fiabilité de 99,9% sur vos factures.",
+    content: `
+      Pendant longtemps, les outils d'OCR (reconnaissance optique de caractères) traditionnels décevaient. Ils confondaient un 8 et un 0, mélangeaient le HT et le TTC, ou rataient la TVA sur des factures mal scannées. Résultat : une vérification manuelle quasi-intégrale était requise.
+      
+      La rupture technologique des modèles actuels (comme Gemini 3.6 Flash) :
+      Les nouvelles architectures n'utilisent plus de simple OCR flou. Elles comprennent le contexte sémantique du document financier. 
+      
+      L'apport des structures strictes (Pydantic) :
+      Sur CLFinance AI, le moteur est configuré pour interdire toute approximation. Si le modèle ne trouve pas le montant TTC exact, ou si l'addition (HT + TVA) ne correspond pas au TTC, l'application alerte immédiatement l'utilisateur. 
+      
+      Sécurité et conformité :
+      Chaque donnée est isolée, sécurisée via Supabase, et rattachée à un espace client étanche. La conformité réglementaire n'est plus une option, c'est le standard de base de l'outil.
+    `
+  }
+];
+
 export default function AgentPreComptableEnterprise() {
   const [activeTab, setActiveTab] = useState<'analyse' | 'historique' | 'blog'>('analyse');
+  const [selectedArticle, setSelectedArticle] = useState<any | null>(null);
+
   const [selectedClient, setSelectedClient] = useState("");
   const [customClient, setCustomClient] = useState("");
   const [filterClient, setFilterClient] = useState("TOUS");
@@ -50,7 +119,6 @@ export default function AgentPreComptableEnterprise() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // --- FONCTION POUR RECUPERER L'HISTORIQUE ---
   const fetchHistory = async (userId: string) => {
     setLoadingHistory(true);
     const { data } = await supabase
@@ -91,7 +159,6 @@ export default function AgentPreComptableEnterprise() {
     await supabase.auth.signOut();
   };
 
-  // --- EXTRACTION DE LA LISTE DES CLIENTS EXISTANTS ---
   const existingClients = Array.from(new Set(history.map(item => item.client_name).filter(Boolean)));
 
   const getActiveClientName = () => {
@@ -99,7 +166,6 @@ export default function AgentPreComptableEnterprise() {
     return selectedClient || existingClients[0] || "Client par défaut";
   };
 
-  // --- LOGIQUE D'ANALYSE ---
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files) as File[];
@@ -192,7 +258,6 @@ export default function AgentPreComptableEnterprise() {
     return Math.abs((ht + tva) - ttc) < 0.1;
   };
 
-  // --- EXPORT CSV CIBLÉ ---
   const exportGroupToCSV = (items: any[], label: string) => {
     const headers = ["Fichier", "Fournisseur", "N° Facture", "Date", "HT", "TVA", "TTC", "Devise", "IBAN"];
     let csvContent = "data:text/csv;charset=utf-8," + headers.join(";") + "\n";
@@ -219,7 +284,6 @@ export default function AgentPreComptableEnterprise() {
     document.body.removeChild(link);
   };
 
-  // --- GROUPEMENT ET FILTRAGE DES DONNÉES HISTORIQUES ---
   const groupHistory = () => {
     const clientsMap: Record<string, Record<string, any[]>> = {};
     const filteredHistory = filterClient === "TOUS" 
@@ -242,10 +306,8 @@ export default function AgentPreComptableEnterprise() {
     setOpenFolders(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // --- ECRAN 1 : CHARGEMENT INITIAL ---
   if (authLoading) return <div className="min-h-screen bg-[#0a0f1c] flex items-center justify-center text-blue-400 font-bold">Chargement de l'espace sécurisé...</div>;
 
-  // --- ECRAN 2 : CONNEXION ---
   if (!session) {
     return (
       <div className="min-h-screen bg-[#0a0f1c] flex items-center justify-center p-4">
@@ -273,7 +335,6 @@ export default function AgentPreComptableEnterprise() {
   const groupedHistory = groupHistory();
   const activeClientFinal = getActiveClientName();
 
-  // --- ECRAN 3 : L'APPLICATION ---
   return (
     <div className="min-h-screen bg-[#0a0f1c] text-white font-sans selection:bg-blue-500/35 pb-20">
       
@@ -299,20 +360,20 @@ export default function AgentPreComptableEnterprise() {
       <div className="max-w-7xl mx-auto px-4 mt-8">
         <div className="flex space-x-4 border-b border-slate-800 pb-px">
           <button 
-            onClick={() => setActiveTab('analyse')}
+            onClick={() => { setActiveTab('analyse'); setSelectedArticle(null); }}
             className={`py-3 px-6 text-sm font-bold border-b-2 transition-colors ${activeTab === 'analyse' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
           >
             Nouvelle Analyse IA
           </button>
           <button 
-            onClick={() => setActiveTab('historique')}
+            onClick={() => { setActiveTab('historique'); setSelectedArticle(null); }}
             className={`py-3 px-6 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'historique' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
           >
             Historique Clients
             <span className="bg-slate-800 text-slate-300 py-0.5 px-2 rounded-full text-xs">{history.length}</span>
           </button>
           <button 
-            onClick={() => setActiveTab('blog')}
+            onClick={() => { setActiveTab('blog'); setSelectedArticle(null); }}
             className={`py-3 px-6 text-sm font-bold border-b-2 transition-colors ${activeTab === 'blog' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-300'}`}
           >
             Blog & ROI
@@ -327,7 +388,7 @@ export default function AgentPreComptableEnterprise() {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-10">
               <h2 className="text-4xl font-bold text-white mb-4 tracking-tight">L'Agent Pré-Comptable Intelligent</h2>
-              <p className="text-slate-400 max-w-xl mx-auto">Sélectionnez le client, glissez vos factures, et l'IA s'occupe du reste.</p>
+              <p className="text-slate-400 max-w-xl mx-auto">Sélectionnez le client, glissez vos factures fournisseurs, et l'IA s'occupe du reste.</p>
             </div>
 
             <div className="w-full bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl p-8 shadow-2xl">
@@ -365,7 +426,7 @@ export default function AgentPreComptableEnterprise() {
               <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-slate-700 rounded-xl hover:border-blue-500 hover:bg-slate-800/50 transition-all cursor-pointer mb-6 group">
                 <div className="flex flex-col items-center justify-center pt-5 pb-6 px-4 text-center">
                   <svg className="w-10 h-10 mb-2 text-blue-500 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                  <p className="text-sm text-slate-300 font-semibold">{files.length > 0 ? `${files.length} fichier(s) sélectionné(s)` : "Glissez vos factures ici (PDF, JPG, PNG)"}</p>
+                  <p className="text-sm text-slate-300 font-semibold">{files.length > 0 ? `${files.length} fichier(s) sélectionné(s)` : "Glissez vos factures fournisseurs ici (PDF, JPG, PNG)"}</p>
                 </div>
                 <input type="file" className="hidden" multiple accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileChange} />
               </label>
@@ -532,63 +593,65 @@ export default function AgentPreComptableEnterprise() {
           </div>
         )}
 
-        {/* ONGLET 3 : BLOG & ARTICLES SEO */}
+        {/* ONGLET 3 : BLOG & ARTICLES SEO (LISTE + VUE DETAIL) */}
         {activeTab === 'blog' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
-            <div className="text-center mb-10">
-              <h2 className="text-3xl font-bold text-white mb-2">Ressources & Analyses DAF</h2>
-              <p className="text-slate-400">Découvrez l'impact réel de l'intelligence artificielle sur l'automatisation comptable.</p>
-            </div>
-
-            <article className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl space-y-6">
-              <div className="flex items-center gap-3 text-xs text-amber-400 font-semibold uppercase tracking-wider">
-                <span>Optimisation Financière</span>
-                <span>•</span>
-                <span>Temps de lecture : 3 min</span>
-              </div>
-
-              <h3 className="text-2xl font-bold text-white">
-                Pourquoi utiliser l'IA en pré-comptabilité a une vraie valeur ajoutée (Exemple chiffré)
-              </h3>
-
-              <div className="text-slate-300 space-y-4 leading-relaxed">
-                <p>
-                  La saisie manuelle des factures est le tue-l'amour par excellence des directions financières. Entre les erreurs de frappe, les retards de validation et le temps perdu à classer des PDF, le coût réel pour une entreprise est colossal.
-                </p>
-
-                <h4 className="text-lg font-bold text-amber-300 pt-2">Le Calcul de l'impact (Le ROI de l'agent IA)</h4>
-                <p>
-                  Prenons une PME standard qui traite environ <strong>200 factures par mois</strong>.
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
-                  <div className="bg-slate-950 p-5 rounded-xl border border-red-900/30">
-                    <h5 className="font-bold text-red-400 mb-2">🔴 En mode manuel (Humain)</h5>
-                    <ul className="text-xs space-y-2 text-slate-400">
-                      <li>• 5 minutes par facture (ouverture, lecture, saisie, vérification TVA).</li>
-                      <li>• <strong>16,6 heures</strong> de travail par mois (1000 minutes).</li>
-                      <li>• Coût : <strong>498 € / mois</strong> (base 30€/h chargée).</li>
-                    </ul>
-                  </div>
-
-                  <div className="bg-slate-950 p-5 rounded-xl border border-emerald-900/30">
-                    <h5 className="font-bold text-emerald-400 mb-2">🟢 Avec CLFinance AI</h5>
-                    <ul className="text-xs space-y-2 text-slate-400">
-                      <li>• 3 secondes d'analyse IA + 30 secondes de validation.</li>
-                      <li>• <strong>Moins de 2 heures</strong> de travail par mois.</li>
-                      <li>• Coût réel : <strong>60 € / mois</strong>.</li>
-                    </ul>
-                  </div>
+            
+            {!selectedArticle ? (
+              // VUE LISTE DES ARTICLES
+              <div>
+                <div className="text-center mb-10">
+                  <h2 className="text-3xl font-bold text-white mb-2">Ressources & Analyses DAF</h2>
+                  <p className="text-slate-400">Tout comprendre sur l'automatisation comptable et la performance de l'IA.</p>
                 </div>
 
-                <h4 className="text-lg font-bold text-amber-300 pt-2">La vraie valeur ajoutée pour votre cabinet ou PME</h4>
-                <ul className="list-disc pl-5 space-y-2">
-                  <li><strong>Économie financière directe :</strong> Plus de 430 € économisés chaque mois uniquement sur le traitement des factures (soit plus de 5 000 € par an).</li>
-                  <li><strong>Zéro erreur humaine :</strong> Les schémas d'extraction stricts éliminent les confusions de chiffres et sécurisent la TVA.</li>
-                  <li><strong>Recentrage sur le conseil :</strong> Le DAF ou le comptable quitte les tâches ingrates pour se consacrer à l'analyse de la marge et de la trésorerie.</li>
-                </ul>
+                <div className="space-y-4">
+                  {BLOG_ARTICLES.map((article) => (
+                    <div 
+                      key={article.id} 
+                      onClick={() => setSelectedArticle(article)}
+                      className="bg-slate-900 border border-slate-800 hover:border-blue-500/50 rounded-2xl p-6 shadow-xl transition-all cursor-pointer group"
+                    >
+                      <div className="flex items-center justify-between text-xs text-amber-400 font-semibold uppercase tracking-wider mb-2">
+                        <span>{article.category}</span>
+                        <span className="text-slate-500">{article.date} • {article.readTime}</span>
+                      </div>
+                      <h3 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors mb-2">
+                        {article.title}
+                      </h3>
+                      <p className="text-slate-400 text-sm leading-relaxed">
+                        {article.summary}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </article>
+            ) : (
+              // VUE ARTICLE INDIVIDUEL
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl space-y-6">
+                <button 
+                  onClick={() => setSelectedArticle(null)}
+                  className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 mb-4"
+                >
+                  ← Retour aux articles
+                </button>
+
+                <div className="flex items-center gap-3 text-xs text-amber-400 font-semibold uppercase tracking-wider">
+                  <span>{selectedArticle.category}</span>
+                  <span>•</span>
+                  <span>{selectedArticle.date}</span>
+                </div>
+
+                <h2 className="text-2xl sm:text-3xl font-bold text-white">
+                  {selectedArticle.title}
+                </h2>
+
+                <div className="text-slate-300 space-y-4 leading-relaxed whitespace-pre-line text-sm sm:text-base border-t border-slate-800 pt-6">
+                  {selectedArticle.content}
+                </div>
+              </div>
+            )}
+
           </div>
         )}
       </main>
