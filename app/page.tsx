@@ -104,6 +104,8 @@ const BLOG_ARTICLES = [
 export default function AgentPreComptableEnterprise() {
   const [activeTab, setActiveTab] = useState<'analyse' | 'historique' | 'blog'>('analyse');
   const [selectedArticle, setSelectedArticle] = useState<any | null>(null);
+  const [authView, setAuthView] = useState<'landing' | 'login' | 'signup'>('landing');
+
   const [selectedClient, setSelectedClient] = useState("");
   const [customClient, setCustomClient] = useState("");
   const [filterClient, setFilterClient] = useState("TOUS");
@@ -291,23 +293,154 @@ export default function AgentPreComptableEnterprise() {
 
   if (authLoading) return <div className="min-h-screen bg-[#0a0f1c] flex items-center justify-center text-blue-400 font-bold">Chargement de l'espace sécurisé...</div>;
 
+  // --- ECRAN DE CONNEXION / INSCRIPTION OU LANDING PAGE ---
   if (!session) {
+    if (authView === 'landing') {
+      return (
+        <div className="min-h-screen bg-[#0a0f1c] text-white font-sans selection:bg-blue-500/35">
+          {/* Landing Header */}
+          <header className="w-full p-6 flex items-center justify-between border-b border-slate-800/60 bg-slate-900/30 backdrop-blur-md sticky top-0 z-50">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gradient-to-br from-amber-300 to-amber-600 shadow-[0_0_15px_rgba(217,119,6,0.4)]">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0a0f1c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              </div>
+              <h1 className="text-2xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 uppercase">CLFinance AI</h1>
+            </div>
+            <div className="flex items-center gap-4">
+               <button onClick={() => setAuthView('login')} className="text-sm font-semibold text-slate-300 hover:text-white transition-colors">Connexion</button>
+               <button onClick={() => setAuthView('signup')} className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.4)]">Démarrer</button>
+            </div>
+          </header>
+
+          {/* Hero Section */}
+          <section className="max-w-7xl mx-auto px-4 pt-20 pb-16 text-center">
+            <div className="inline-flex items-center gap-2 bg-blue-950/60 border border-blue-800/60 text-blue-400 text-xs font-semibold px-4 py-1.5 rounded-full mb-6">
+              <span>🚀 Prêt pour la Facture Électronique 2026</span>
+            </div>
+            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-6 max-w-4xl mx-auto leading-tight">
+              L'Agent Pré-Comptable Intelligent pour <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600">DAF et Cabinets</span>
+            </h1>
+            <p className="text-slate-400 text-lg max-w-2xl mx-auto mb-10">
+              Transformez instantanément vos factures fournisseurs en données comptables structurées. Éliminez 100% de la saisie manuelle et sécurisez votre TVA.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <button onClick={() => setAuthView('signup')} className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-4 rounded-xl text-lg shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all">
+                Tester gratuitement l'agent IA
+              </button>
+              <button onClick={() => setAuthView('login')} className="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold px-8 py-4 rounded-xl text-lg transition-all">
+                Accéder à mon espace
+              </button>
+            </div>
+          </section>
+
+          {/* Pricing & Formules Section */}
+          <section className="max-w-7xl mx-auto px-4 py-16 border-t border-slate-800/80">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold mb-3">Tarifs & Formules transparentes</h2>
+              <p className="text-slate-400">Choisissez l'option taillée pour votre volume d'achats.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {/* Starter */}
+              <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between shadow-xl relative">
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-1">Starter</h3>
+                  <p className="text-slate-400 text-xs mb-4">Indépendants & TPE</p>
+                  <div className="text-3xl font-extrabold text-amber-400 mb-6">49 € <span className="text-xs text-slate-400 font-normal">/ mois</span></div>
+                  <ul className="space-y-3 text-sm text-slate-300 mb-8">
+                    <li>• Jusqu'à 150 factures / mois</li>
+                    <li>• Extraction IA (HT, TVA, TTC, IBAN)</li>
+                    <li>• Export CSV structuré</li>
+                    <li>• Support par e-mail</li>
+                  </ul>
+                </div>
+                <button onClick={() => setAuthView('signup')} className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-sm transition-colors">Choisir Starter</button>
+              </div>
+
+              {/* Pro DAF */}
+              <div className="bg-slate-900 border-2 border-blue-500/80 rounded-2xl p-6 flex flex-col justify-between shadow-2xl relative">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">Recommandé</div>
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-1">Pro DAF</h3>
+                  <p className="text-slate-400 text-xs mb-4">PME & Directions Financières</p>
+                  <div className="text-3xl font-extrabold text-amber-400 mb-6">149 € <span className="text-xs text-slate-400 font-normal">/ mois</span></div>
+                  <ul className="space-y-3 text-sm text-slate-300 mb-8">
+                    <li>• Jusqu'à 600 factures / mois</li>
+                    <li>• Moteur multimodal avancé</li>
+                    <li>• Multi-clients et dossiers étanches</li>
+                    <li>• Contrôle de cohérence TVA</li>
+                  </ul>
+                </div>
+                <button onClick={() => setAuthView('signup')} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl text-sm transition-colors shadow-[0_0_15px_rgba(37,99,235,0.4)]">Choisir Pro DAF</button>
+              </div>
+
+              {/* Cabinet / Scale */}
+              <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between shadow-xl relative">
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-1">Cabinet & Scale</h3>
+                  <p className="text-slate-400 text-xs mb-4">Experts-comptables</p>
+                  <div className="text-3xl font-extrabold text-amber-400 mb-6">399 € <span className="text-xs text-slate-400 font-normal">/ mois</span></div>
+                  <ul className="space-y-3 text-sm text-slate-300 mb-8">
+                    <li>• Jusqu'à 2 000 factures / mois</li>
+                    <li>• Portefeuille multi-dossiers illimité</li>
+                    <li>• Exports groupés par date & client</li>
+                    <li>• Support prioritaire</li>
+                  </ul>
+                </div>
+                <button onClick={() => setAuthView('signup')} className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-sm transition-colors">Choisir Cabinet</button>
+              </div>
+
+              {/* Enterprise */}
+              <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between shadow-xl relative">
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-1">Enterprise</h3>
+                  <p className="text-slate-400 text-xs mb-4">Groupes & Multi-filiales</p>
+                  <div className="text-3xl font-extrabold text-amber-400 mb-6">Sur devis</div>
+                  <ul className="space-y-3 text-sm text-slate-300 mb-8">
+                    <li>• Volumes sur mesure illimités</li>
+                    <li>• Connexion API custom & ERP</li>
+                    <li>• SLA garanti & Hébergement dédié</li>
+                    <li>• Account manager dédié</li>
+                  </ul>
+                </div>
+                <button onClick={() => setAuthView('signup')} className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl text-sm transition-colors">Nous contacter</button>
+              </div>
+            </div>
+          </section>
+
+          <footer className="w-full py-8 border-t border-slate-800 text-center text-xs text-slate-500">
+            © 2026 CLFinance AI — L'Agent Pré-Comptable Intelligent. Tous droits réservés.
+          </footer>
+        </div>
+      );
+    }
+
+    // Vue Formulaire Connexion / Inscription
     return (
       <div className="min-h-screen bg-[#0a0f1c] flex items-center justify-center p-4">
-        <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl max-w-md w-full">
-          <div className="flex justify-center mb-6">
+        <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-2xl max-w-md w-full relative">
+          <button onClick={() => setAuthView('landing')} className="absolute top-4 left-4 text-xs text-slate-400 hover:text-white transition-colors">
+            ← Retour à l'accueil
+          </button>
+          
+          <div className="flex justify-center mb-6 mt-4">
              <div className="w-12 h-12 flex items-center justify-center rounded-lg bg-gradient-to-br from-amber-300 to-amber-600 shadow-[0_0_15px_rgba(217,119,6,0.4)]">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0a0f1c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
              </div>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-6 text-center">Connexion DAF</h2>
+          <h2 className="text-2xl font-bold text-white mb-6 text-center">
+            {authView === 'login' ? 'Connexion Espace DAF' : 'Créer votre compte CLFinance AI'}
+          </h2>
           <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
             <input type="email" placeholder="Email professionnel" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} className="bg-slate-950 border border-slate-700 text-white rounded-lg p-3 outline-none focus:border-blue-500" />
             <input type="password" placeholder="Mot de passe" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} className="bg-slate-950 border border-slate-700 text-white rounded-lg p-3 outline-none focus:border-blue-500" />
             {authError && <p className="text-red-400 text-sm">{authError}</p>}
             <div className="flex gap-3 mt-4">
-               <button onClick={handleLogin} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-colors">Connexion</button>
-               <button onClick={handleSignUp} className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-lg border border-slate-700">Créer compte</button>
+               {authView === 'login' ? (
+                 <button onClick={handleLogin} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-colors">Se connecter</button>
+               ) : (
+                 <button onClick={handleSignUp} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-colors">Créer le compte</button>
+               )}
             </div>
           </form>
         </div>
